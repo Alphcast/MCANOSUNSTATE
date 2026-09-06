@@ -1,0 +1,172 @@
+import React, { useState, useEffect } from 'react';
+import { Navbar } from './components/Navbar';
+import { HomeSection } from './components/HomeSection';
+import { RegistrationSection } from './components/RegistrationSection';
+import { VerificationSection } from './components/VerificationSection';
+import { ProgramsSection } from './components/ProgramsSection';
+import { ResourcesSection } from './components/ResourcesSection';
+import { DonationSection } from './components/DonationSection';
+import { AdminDashboard } from './components/AdminDashboard';
+import { Footer } from './components/Footer';
+import { IdCardCanvas } from './components/IdCardCanvas';
+import { Member, Announcement, ProgramActivity } from './types';
+import { INITIAL_MEMBERS, INITIAL_ANNOUNCEMENTS, INITIAL_PROGRAMS } from './data/constants';
+import { X } from 'lucide-react';
+
+export default function App() {
+  const [activeTab, setActiveTab] = useState<string>('home');
+  const [members, setMembers] = useState<Member[]>(INITIAL_MEMBERS);
+  const [announcements, setAnnouncements] = useState<Announcement[]>(INITIAL_ANNOUNCEMENTS);
+  const [programs, setPrograms] = useState<ProgramActivity[]>(INITIAL_PROGRAMS);
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+
+  // Direct verification param from QR scan or URL
+  const [initialVerifyCode, setInitialVerifyCode] = useState<string>('');
+
+  // Selected member for modal card reprint / viewing
+  const [selectedCardMember, setSelectedCardMember] = useState<Member | null>(null);
+
+  // Load backend data
+  const refreshMembers = async () => {
+    try {
+      const res = await fetch('/api/members');
+      const data = await res.json();
+      if (data.data) {
+        setMembers(data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching members:', err);
+    }
+  };
+
+  const refreshAnnouncements = async () => {
+    try {
+      const res = await fetch('/api/announcements');
+      const data = await res.json();
+      if (data.data) {
+        setAnnouncements(data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching announcements:', err);
+    }
+  };
+
+  const refreshPrograms = async () => {
+    try {
+      const res = await fetch('/api/programs');
+      const data = await res.json();
+      if (data.data) {
+        setPrograms(data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching programs:', err);
+    }
+  };
+
+  useEffect(() => {
+    refreshMembers();
+    refreshAnnouncements();
+    refreshPrograms();
+
+    // Check URL parameters (e.g. ?verify=CODE or ?tab=register)
+    const params = new URLSearchParams(window.location.search);
+    const verifyParam = params.get('verify');
+    const tabParam = params.get('tab');
+
+    if (verifyParam) {
+      setInitialVerifyCode(verifyParam);
+      setActiveTab('verify');
+    } else if (tabParam) {
+      setActiveTab(tabParam);
+    }
+  }, []);
+
+  const handleNavigate = (tab: string) => {
+    setActiveTab(tab);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col bg-slate-50/50 text-slate-900 font-sans antialiased selection:bg-emerald-800 selection:text-amber-300">
+      {/* Top Navbar */}
+      <Navbar
+        activeTab={activeTab}
+        setActiveTab={handleNavigate}
+        announcements={announcements}
+        onOpenAdmin={() => handleNavigate('admin')}
+        isAdminLoggedIn={isAdminLoggedIn}
+      />
+
+      {/* Main Content Area */}
+      <main className="flex-1">
+        {activeTab === 'home' && (
+          <HomeSection
+            onNavigate={handleNavigate}
+            announcements={announcements}
+            programs={programs}
+            totalMembers={members.length}
+          />
+        )}
+
+        {activeTab === 'register' && (
+          <RegistrationSection
+            onMemberRegistered={(newMember) => {
+              setMembers((prev) => [newMember, ...prev.filter((m) => m.id !== newMember.id)]);
+            }}
+          />
+        )}
+
+        {activeTab === 'verify' && (
+          <VerificationSection
+            initialCode={initialVerifyCode}
+            onViewCard={(member) => setSelectedCardMember(member)}
+          />
+        )}
+
+        {activeTab === 'programs' && (
+          <ProgramsSection programs={programs} />
+        )}
+
+        {activeTab === 'resources' && (
+          <ResourcesSection />
+        )}
+
+        {activeTab === 'donate' && (
+          <DonationSection />
+        )}
+
+        {activeTab === 'admin' && (
+          <AdminDashboard
+            members={members}
+            onRefreshMembers={refreshMembers}
+            onViewMemberCard={(member) => setSelectedCardMember(member)}
+            announcements={announcements}
+            onRefreshAnnouncements={refreshAnnouncements}
+            isAdminLoggedIn={isAdminLoggedIn}
+            setIsAdminLoggedIn={setIsAdminLoggedIn}
+          />
+        )}
+      </main>
+
+      {/* Modal for Viewing & Reprinting ID Card */}
+      {selectedCardMember && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-4xl w-full p-4 sm:p-6 shadow-2xl relative my-8">
+            <button
+              onClick={() => setSelectedCardMember(null)}
+              className="absolute right-4 top-4 w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-700 transition-colors z-10"
+              title="Close Card View"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <IdCardCanvas member={selectedCardMember} />
+          </div>
+        </div>
+      )}
+
+      {/* Official Footer */}
+      <Footer onNavigate={handleNavigate} />
+    </div>
+  );
+}

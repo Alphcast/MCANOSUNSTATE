@@ -1,0 +1,6 @@
+{
+  "name": "MCAN Osun State Chapter Portal",
+  "description": "Official portal of the Muslim Corpers Association of Nigeria (MCAN) Osun State Chapter featuring member registration, instant front and back ID card generation (PDF/PNG/JPG), real-time verification database, weekly/monthly/yearly program schedules, admin management, resources, and Zakat/charity donation portal.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
