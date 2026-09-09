@@ -12,6 +12,8 @@ import { IdCardCanvas } from './components/IdCardCanvas';
 import { Member, Announcement, ProgramActivity } from './types';
 import { INITIAL_MEMBERS, INITIAL_ANNOUNCEMENTS, INITIAL_PROGRAMS } from './data/constants';
 import { X } from 'lucide-react';
+import { safeFetchJson } from './utils/api';
+import { getLocalMembers } from './utils/memberStorage';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<string>('home');
@@ -26,40 +28,48 @@ export default function App() {
   // Selected member for modal card reprint / viewing
   const [selectedCardMember, setSelectedCardMember] = useState<Member | null>(null);
 
-  // Load backend data
+  // Load backend data with safe fallback
   const refreshMembers = async () => {
     try {
-      const res = await fetch('/api/members');
-      const data = await res.json();
-      if (data.data) {
-        setMembers(data.data);
-      }
+      const res = await safeFetchJson<{ data?: Member[] }>('/api/members');
+      const serverList = res.ok && res.data?.data ? res.data.data : INITIAL_MEMBERS;
+      const localList = getLocalMembers();
+
+      // Merge and deduplicate by id and stateCode
+      const map = new Map<string, Member>();
+      [...serverList, ...localList].forEach((m) => {
+        if (m.id) map.set(m.id, m);
+        if (m.stateCode) map.set(m.stateCode.toUpperCase(), m);
+      });
+
+      const merged = Array.from(new Set(map.values()));
+      setMembers(merged.length > 0 ? merged : INITIAL_MEMBERS);
     } catch (err) {
-      console.error('Error fetching members:', err);
+      console.warn('Fallback: loading local members:', err);
+      const localList = getLocalMembers();
+      setMembers(localList.length > 0 ? [...localList, ...INITIAL_MEMBERS] : INITIAL_MEMBERS);
     }
   };
 
   const refreshAnnouncements = async () => {
     try {
-      const res = await fetch('/api/announcements');
-      const data = await res.json();
-      if (data.data) {
-        setAnnouncements(data.data);
+      const res = await safeFetchJson<{ data?: Announcement[] }>('/api/announcements');
+      if (res.ok && res.data?.data) {
+        setAnnouncements(res.data.data);
       }
     } catch (err) {
-      console.error('Error fetching announcements:', err);
+      console.warn('Error fetching announcements:', err);
     }
   };
 
   const refreshPrograms = async () => {
     try {
-      const res = await fetch('/api/programs');
-      const data = await res.json();
-      if (data.data) {
-        setPrograms(data.data);
+      const res = await safeFetchJson<{ data?: ProgramActivity[] }>('/api/programs');
+      if (res.ok && res.data?.data) {
+        setPrograms(res.data.data);
       }
     } catch (err) {
-      console.error('Error fetching programs:', err);
+      console.warn('Error fetching programs:', err);
     }
   };
 

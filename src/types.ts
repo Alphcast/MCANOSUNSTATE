@@ -16,9 +16,9 @@ export type MCANPost =
   | 'Corps Member';
 
 export interface Member {
-  id: string; // e.g. MCAN-OS-2024-0012
+  id: string; // e.g. MCAN-OS-2026-0012
   fullName: string;
-  stateCode: string; // Format: OS/24A/XXXX
+  stateCode: string; // Format: OS/26C/XXXX
   callUpNumber?: string;
   mcanPost: MCANPost | string;
   phoneNumber: string;
@@ -29,7 +29,7 @@ export interface Member {
   lga: string; // Osun State LGA
   ppa: string; // Place of Primary Assignment
   bloodGroup?: string;
-  batch: string; // e.g., 2024 Batch A, 2024 Batch B
+  batch: string; // e.g., 2026 Batch A, 2026 Batch C
   residence?: string; // Lodge or private
   registrationDate: string;
   verified: boolean;

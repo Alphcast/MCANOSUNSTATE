@@ -161,7 +161,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
                   Instant Member ID Card
                 </h3>
                 <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-                  Register in seconds with your state code (OS/24A/XXXX), upload your passport photo, and immediately generate your official Front & Back ID card with instant PDF, PNG, or JPG download.
+                  Register in seconds with your state code (OS/26C/XXXX), upload your passport photo, and immediately generate your official Front & Back ID card with instant PDF, PNG, or JPG download.
                 </p>
               </div>
               <button

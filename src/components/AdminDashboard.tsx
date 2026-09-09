@@ -72,11 +72,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Handle Admin Login
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (pinInput.trim() === 'mcan2024admin' || pinInput.trim() === 'admin') {
+    const cleanPin = pinInput.trim().toLowerCase();
+    if (cleanPin === 'mcan2026admin' || cleanPin === 'mcan2024admin' || cleanPin === 'admin') {
       setIsAdminLoggedIn(true);
       setAuthError(null);
     } else {
-      setAuthError('Incorrect passkey. Default passkey: mcan2024admin');
+      setAuthError('Incorrect passkey. Default passkey: mcan2026admin');
     }
   };
 
@@ -269,10 +270,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <div className="mt-6 pt-5 border-t border-gray-100 text-xs text-gray-500">
             <span>Demo default passkey: </span>
             <button
-              onClick={() => setPinInput('mcan2024admin')}
+              onClick={() => setPinInput('mcan2026admin')}
               className="font-mono text-emerald-700 font-bold underline ml-1"
             >
-              mcan2024admin
+              mcan2026admin
             </button>
           </div>
         </div>

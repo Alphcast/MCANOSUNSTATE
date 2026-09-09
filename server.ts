@@ -8,8 +8,8 @@ import { Member, Announcement, ProgramActivity } from './src/types.ts';
 const app = express();
 const PORT = 3000;
 
-app.use(express.json({ limit: '15mb' }));
-app.use(express.urlencoded({ extended: true, limit: '15mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const MEMBERS_FILE = path.join(DATA_DIR, 'members.json');
@@ -193,7 +193,7 @@ app.post('/api/members', (req, res) => {
     }
 
     // Clean state code format: ensure uppercase, standard slashes
-    // Expected: OS/24A/XXXX or OS//24A/XXXX
+    // Expected: OS/26C/XXXX or OS//26C/XXXX
     let formattedStateCode = String(stateCode).trim().toUpperCase();
     formattedStateCode = formattedStateCode.replace(/\/+/g, '/');
 
@@ -231,7 +231,7 @@ app.post('/api/members', (req, res) => {
       lga: lga || 'Osogbo',
       ppa: ppa ? ppa.trim() : 'Place of Primary Assignment, Osun State',
       bloodGroup: bloodGroup || 'O+',
-      batch: batch || '2024 Batch B Stream 1',
+      batch: batch || '2026 Batch C Stream 1',
       residence: residence || 'Osun State',
       registrationDate: new Date().toISOString(),
       verified: true,
@@ -467,6 +467,29 @@ app.post('/api/donations/notify', (req, res) => {
   donations.unshift(newDonation);
   saveDonations(donations);
   res.status(201).json({ success: true, message: 'Donation notification received. May Allah accept it and reward you abundantly!', donation: newDonation });
+});
+
+// Explicit API 404 handler
+app.all('/api/*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    error: `API endpoint not found: ${req.method} ${req.originalUrl}`
+  });
+});
+
+// Explicit API error handler for bodyParser and route exceptions
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (req.path.startsWith('/api')) {
+    console.error('API Error intercepted:', err?.message || err);
+    res.status(err?.status || 500).json({
+      success: false,
+      error: err?.type === 'entity.too.large'
+        ? 'Uploaded payload or photo size is too large. Please use a compressed photo.'
+        : (err?.message || 'An unexpected error occurred on the server.')
+    });
+    return;
+  }
+  next(err);
 });
 
 // === SERVER BOOTSTRAP WITH VITE MIDDLEWARE ===

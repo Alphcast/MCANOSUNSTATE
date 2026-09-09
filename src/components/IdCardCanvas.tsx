@@ -184,7 +184,9 @@ export const IdCardCanvas: React.FC<IdCardCanvasProps> = ({ member }) => {
     if (member.passportUrl) {
       try {
         const img = new Image();
-        img.crossOrigin = 'anonymous';
+        if (!member.passportUrl.startsWith('data:')) {
+          img.crossOrigin = 'anonymous';
+        }
         await new Promise((resolve, reject) => {
           img.onload = resolve;
           img.onerror = reject;

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldCheck, ShieldAlert, Search, CheckCircle, Award, Calendar, MapPin, Building, QrCode } from 'lucide-react';
 import { Member } from '../types';
+import { safeFetchJson } from '../utils/api';
+import { findMemberInLocal } from '../utils/memberStorage';
 
 interface VerificationSectionProps {
   initialCode?: string;
@@ -31,14 +33,35 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({ initia
     setIsSearching(true);
     setResult(null);
 
+    const cleanCode = codeToVerify.trim();
+
+    // Check local storage first
+    const localMember = findMemberInLocal(cleanCode);
+    if (localMember) {
+      setResult({
+        verified: true,
+        member: localMember,
+        verificationTimestamp: new Date().toISOString(),
+        issuingAuthority: 'Muslim Corpers Association of Nigeria (MCAN), Osun State Secretariat'
+      });
+      setIsSearching(false);
+      return;
+    }
+
     try {
-      const res = await fetch(`/api/verify/${encodeURIComponent(codeToVerify.trim())}`);
-      const data = await res.json();
-      setResult(data);
+      const res = await safeFetchJson<any>(`/api/verify/${encodeURIComponent(cleanCode)}`);
+      if (res.ok && res.data) {
+        setResult(res.data);
+      } else {
+        setResult({
+          verified: false,
+          message: res.error || res.data?.message || `No record found matching '${cleanCode}'. Please verify your NYSC state code or MCAN ID.`
+        });
+      }
     } catch (err: any) {
       setResult({
         verified: false,
-        message: 'Could not connect to the verification server: ' + err.message
+        message: 'Connection is not good, check back later'
       });
     } finally {
       setIsSearching(false);
@@ -78,7 +101,7 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({ initia
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Enter State Code (e.g. OS/24A/1042) or MCAN ID"
+              placeholder="Enter State Code (e.g. OS/26A/1042 or OS/26C/1234) or MCAN ID"
               className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 text-sm sm:text-base font-mono uppercase"
             />
           </div>
@@ -94,7 +117,7 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({ initia
         {/* Quick Test Codes */}
         <div className="mt-4 pt-4 border-t border-gray-100 flex flex-wrap items-center gap-2 text-xs">
           <span className="text-gray-500 font-medium">Quick verification examples:</span>
-          {['OS/24A/1042', 'OS/24A/2115', 'OS/24A/0891', 'OS/24A/3402'].map((code) => (
+          {['OS/26A/1042', 'OS/26A/2115', 'OS/26B/0891', 'OS/26C/3402'].map((code) => (
             <button
               key={code}
               type="button"
@@ -247,7 +270,7 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({ initia
                 Verification Failed: Record Not Found
               </h3>
               <p className="text-sm text-gray-600 max-w-md mx-auto mt-2">
-                {result.message || 'No registered MCAN Osun member record matches this identifier. Please verify the State Code format (e.g. OS/24A/1042) or register as a new member.'}
+                {result.message || 'No registered MCAN Osun member record matches this identifier. Please verify the State Code format (e.g. OS/26A/1042) or register as a new member.'}
               </p>
             </div>
           )}

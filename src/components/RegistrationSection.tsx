@@ -11,11 +11,16 @@ import {
   AlertCircle,
   Search,
   Camera,
-  RotateCcw
+  RotateCcw,
+  Sparkles,
+  Loader2
 } from 'lucide-react';
 import { Member, MCANPost } from '../types';
 import { OSUN_LGAS, MCAN_POSTS, BATCH_LIST } from '../data/constants';
 import { IdCardCanvas } from './IdCardCanvas';
+import { compressImageFile, generateDefaultPassport } from '../utils/image';
+import { safeFetchJson } from '../utils/api';
+import { saveLocalMember, findMemberInLocal, generateMemberLocally } from '../utils/memberStorage';
 
 interface RegistrationSectionProps {
   onMemberRegistered?: (member: Member) => void;
@@ -26,7 +31,7 @@ export const RegistrationSection: React.FC<RegistrationSectionProps> = ({ onMemb
 
   // Form State
   const [fullName, setFullName] = useState('');
-  const [stateCode, setStateCode] = useState('OS/24B/');
+  const [stateCode, setStateCode] = useState('OS/26C/');
   const [mcanPost, setMcanPost] = useState<MCANPost | string>('Corps Member');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [whatsappNumber, setWhatsappNumber] = useState('');
@@ -35,13 +40,15 @@ export const RegistrationSection: React.FC<RegistrationSectionProps> = ({ onMemb
   const [lga, setLga] = useState('Osogbo');
   const [ppa, setPpa] = useState('');
   const [bloodGroup, setBloodGroup] = useState('O+');
-  const [batch, setBatch] = useState(BATCH_LIST[2] || '2024 Batch B Stream 1');
+  const [batch, setBatch] = useState(BATCH_LIST[4] || '2026 Batch C Stream 1');
   const [passportUrl, setPassportUrl] = useState<string>('');
   const [emergencyContactName, setEmergencyContactName] = useState('');
   const [emergencyContactPhone, setEmergencyContactPhone] = useState('');
 
   // UI status
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCompressingPhoto, setIsCompressingPhoto] = useState(false);
+  const [photoInfo, setPhotoInfo] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [registeredMember, setRegisteredMember] = useState<Member | null>(null);
 
@@ -58,32 +65,41 @@ export const RegistrationSection: React.FC<RegistrationSectionProps> = ({ onMemb
     { label: 'Sister 2', url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&auto=format&fit=crop&q=80' }
   ];
 
-  // Handle local passport upload
-  const handlePassportUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle local passport upload with automatic client-side compression
+  const handlePassportUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      setErrorMessage('Please upload a valid image file (JPG, PNG).');
+      setErrorMessage('Please upload a valid image file (JPG, PNG, WEBP).');
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setErrorMessage('Passport photograph size must not exceed 5MB.');
-      return;
-    }
+    setIsCompressingPhoto(true);
+    setErrorMessage(null);
 
-    const reader = new FileReader();
-    reader.onload = (uploadEvent) => {
-      if (uploadEvent.target?.result) {
-        setPassportUrl(uploadEvent.target.result as string);
-        setErrorMessage(null);
-      }
-    };
-    reader.readAsDataURL(file);
+    try {
+      // Compress and optimize image to high-clarity passport dimensions (~30KB)
+      const compressedDataUrl = await compressImageFile(file, 480, 600, 0.85);
+      setPassportUrl(compressedDataUrl);
+      const approxKb = Math.round((compressedDataUrl.length * 3) / 4 / 1024);
+      setPhotoInfo(`Optimized passport photo (${approxKb} KB)`);
+    } catch (err: any) {
+      console.warn('Canvas compression error, falling back to direct reader:', err);
+      const reader = new FileReader();
+      reader.onload = (uploadEvent) => {
+        if (uploadEvent.target?.result) {
+          setPassportUrl(uploadEvent.target.result as string);
+          setPhotoInfo('Photo loaded');
+        }
+      };
+      reader.readAsDataURL(file);
+    } finally {
+      setIsCompressingPhoto(false);
+    }
   };
 
-  // Submit registration
+  // Submit registration & Generate ID card automatically
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
@@ -95,8 +111,8 @@ export const RegistrationSection: React.FC<RegistrationSectionProps> = ({ onMemb
     }
 
     const cleanCode = stateCode.trim().toUpperCase().replace(/\/+/g, '/');
-    if (!cleanCode.startsWith('OS/') || cleanCode.length < 9) {
-      setErrorMessage('State code must be in official NYSC Osun format, e.g., OS/24A/1234 or OS/24B/5678.');
+    if (!cleanCode.startsWith('OS/') || cleanCode.length < 8) {
+      setErrorMessage('State code must be in official NYSC Osun format, e.g., OS/26A/1234 or OS/26C/5678.');
       return;
     }
 
@@ -105,57 +121,85 @@ export const RegistrationSection: React.FC<RegistrationSectionProps> = ({ onMemb
       return;
     }
 
-    if (!passportUrl) {
-      setErrorMessage('Please upload your passport photograph or choose one of the sample photos.');
-      return;
-    }
+    // Auto-generate default passport if none selected
+    const activePassportUrl = passportUrl || generateDefaultPassport(gender, fullName);
 
     setIsSubmitting(true);
 
-    try {
-      const payload = {
-        fullName: fullName.trim(),
-        stateCode: cleanCode,
-        mcanPost,
-        phoneNumber: phoneNumber.trim(),
-        whatsappNumber: whatsappNumber.trim() || phoneNumber.trim(),
-        email: email.trim() || undefined,
-        gender,
-        lga,
-        ppa: ppa.trim() || `${lga} LGA, Osun State`,
-        bloodGroup,
-        batch,
-        passportUrl,
-        emergencyContactName: emergencyContactName.trim() || undefined,
-        emergencyContactPhone: emergencyContactPhone.trim() || undefined
-      };
+    const payload = {
+      fullName: fullName.trim(),
+      stateCode: cleanCode,
+      mcanPost,
+      phoneNumber: phoneNumber.trim(),
+      whatsappNumber: whatsappNumber.trim() || phoneNumber.trim(),
+      email: email.trim() || undefined,
+      gender,
+      lga,
+      ppa: ppa.trim() || `${lga} LGA, Osun State`,
+      bloodGroup,
+      batch,
+      passportUrl: activePassportUrl,
+      emergencyContactName: emergencyContactName.trim() || undefined,
+      emergencyContactPhone: emergencyContactPhone.trim() || undefined
+    };
 
-      const res = await fetch('/api/members', {
+    try {
+      // 1. Send to server using safe fetch (guaranteed never to crash on HTML error responses)
+      const res = await safeFetchJson<{
+        success: boolean;
+        message?: string;
+        member?: Member;
+        existingMember?: Member;
+        error?: string;
+      }>('/api/members', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        if (data.existingMember) {
-          setRegisteredMember(data.existingMember);
-          setErrorMessage(data.error);
-        } else {
-          setErrorMessage(data.error || 'Failed to submit registration. Please check fields.');
+      if (res.ok && res.data?.member) {
+        // Successfully registered on backend!
+        saveLocalMember(res.data.member);
+        setRegisteredMember(res.data.member);
+        if (onMemberRegistered) {
+          onMemberRegistered(res.data.member);
         }
-        setIsSubmitting(false);
+
+        confetti({
+          particleCount: 120,
+          spread: 80,
+          origin: { y: 0.6 },
+          colors: ['#047857', '#10b981', '#f59e0b', '#fbbf24']
+        });
         return;
       }
 
-      // Success!
-      setRegisteredMember(data.member);
-      if (onMemberRegistered) {
-        onMemberRegistered(data.member);
+      if (res.data?.existingMember) {
+        // Already registered on server, display the member's card
+        saveLocalMember(res.data.existingMember);
+        setRegisteredMember(res.data.existingMember);
+        setErrorMessage(res.data.error || 'Member is already registered. Your official ID card is displayed below.');
+        return;
       }
 
-      // Fire celebratory confetti!
+      // Check if state code is registered in local storage
+      const existingLocal = findMemberInLocal(cleanCode);
+      if (existingLocal) {
+        setRegisteredMember(existingLocal);
+        setErrorMessage(`State code ${cleanCode} is already registered (${existingLocal.fullName}). Card retrieved below.`);
+        return;
+      }
+
+      // 2. Automatic ID Card Generation Fallback:
+      // If the backend was unreachable or returned non-JSON, automatically generate the official ID card locally!
+      const locallyGenerated = generateMemberLocally(payload);
+      setRegisteredMember(locallyGenerated);
+      if (onMemberRegistered) {
+        onMemberRegistered(locallyGenerated);
+      }
+
+      setErrorMessage(res.error || 'Connection is not good, check back later');
+
       confetti({
         particleCount: 120,
         spread: 80,
@@ -163,7 +207,14 @@ export const RegistrationSection: React.FC<RegistrationSectionProps> = ({ onMemb
         colors: ['#047857', '#10b981', '#f59e0b', '#fbbf24']
       });
     } catch (err: any) {
-      setErrorMessage(err.message || 'Connection error. Please try again.');
+      console.warn('Network issue during registration, generating ID card automatically:', err);
+      // Failsafe: Guarantee automatic generation
+      const locallyGenerated = generateMemberLocally(payload);
+      setRegisteredMember(locallyGenerated);
+      setErrorMessage('Connection is not good, check back later');
+      if (onMemberRegistered) {
+        onMemberRegistered(locallyGenerated);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -177,30 +228,58 @@ export const RegistrationSection: React.FC<RegistrationSectionProps> = ({ onMemb
     setIsSearching(true);
     setSearchError(null);
 
-    try {
-      const code = searchQuery.trim().replace(/\/+/g, '/').toUpperCase();
-      const res = await fetch(`/api/verify/${encodeURIComponent(code)}`);
-      const data = await res.json();
+    const code = searchQuery.trim().replace(/\/+/g, '/').toUpperCase();
 
-      if (!res.ok || !data.member) {
-        setSearchError('No member record found for this State Code or MCAN ID. Please ensure exact code (e.g. OS/24A/1042).');
-        setIsSearching(false);
+    // Check local storage first
+    const localMember = findMemberInLocal(code);
+    if (localMember) {
+      setRegisteredMember(localMember);
+      setIsSearching(false);
+      return;
+    }
+
+    try {
+      const res = await safeFetchJson<{ verified: boolean; member?: Member; message?: string }>(
+        `/api/verify/${encodeURIComponent(code)}`
+      );
+
+      if (res.ok && res.data?.member) {
+        // Retrieve full member record
+        const fullRes = await safeFetchJson<{ member?: Member }>(`/api/members/${res.data.member.id}`);
+        if (fullRes.data?.member) {
+          saveLocalMember(fullRes.data.member);
+          setRegisteredMember(fullRes.data.member);
+        } else {
+          saveLocalMember(res.data.member);
+          setRegisteredMember(res.data.member);
+        }
         return;
       }
 
-      // Retrieve full member record
-      const fullRes = await fetch(`/api/members/${data.member.id}`);
-      const fullData = await fullRes.json();
-      if (fullData.member) {
-        setRegisteredMember(fullData.member);
-      } else {
-        setRegisteredMember(data.member);
-      }
+      setSearchError(res.error || res.data?.message || 'No member record found for this State Code or MCAN ID. Please ensure exact code (e.g. OS/26C/1042).');
     } catch (err: any) {
-      setSearchError('Network error retrieving record: ' + err.message);
+      setSearchError('Connection is not good, check back later');
     } finally {
       setIsSearching(false);
     }
+  };
+
+  // Quick 1-click Auto-Generate Demo Card
+  const handleAutoFillAndGenerate = () => {
+    const randomNum = Math.floor(1000 + Math.random() * 8999);
+    setFullName('Bro. Abdul-Hameed Olatunji');
+    setStateCode(`OS/26C/${randomNum}`);
+    setBatch('2026 Batch C Stream 1');
+    setPhoneNumber('08134567890');
+    setWhatsappNumber('08134567890');
+    setEmail('abdulhameed.osun@mcan.org.ng');
+    setMcanPost('Corps Member');
+    setLga('Osogbo');
+    setPpa('Government Technical College, Osogbo');
+    setBloodGroup('O+');
+    setPassportUrl(samplePassports[0].url);
+    setPhotoInfo('Demo Passport Loaded');
+    setErrorMessage(null);
   };
 
   return (
@@ -268,7 +347,7 @@ export const RegistrationSection: React.FC<RegistrationSectionProps> = ({ onMemb
             </div>
             <h2 className="text-xl font-bold text-gray-900">Retrieve & Reprint Your ID Card</h2>
             <p className="text-xs sm:text-sm text-gray-500 mt-1">
-              Enter your Osun State Code (e.g. <strong className="text-emerald-900">OS/24A/1042</strong>) or MCAN ID to load your card.
+              Enter your Osun State Code (e.g. <strong className="text-emerald-900">OS/26A/1042</strong>) or MCAN ID to load your card.
             </p>
           </div>
 
@@ -282,7 +361,7 @@ export const RegistrationSection: React.FC<RegistrationSectionProps> = ({ onMemb
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="e.g. OS/24A/1042 or MCAN-OS-2024-0001"
+                  placeholder="e.g. OS/26C/1042 or MCAN-OS-2026-0001"
                   className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 font-mono text-base uppercase"
                 />
               </div>
@@ -313,38 +392,41 @@ export const RegistrationSection: React.FC<RegistrationSectionProps> = ({ onMemb
               <button
                 type="button"
                 onClick={() => {
-                  setSearchQuery('OS/24A/1042');
-                  fetch('/api/members/MCAN-OS-2024-0001')
-                    .then((r) => r.json())
-                    .then((d) => setRegisteredMember(d.member));
+                  setSearchQuery('OS/26A/1042');
+                  safeFetchJson('/api/members/MCAN-OS-2026-0001')
+                    .then((res) => {
+                      if (res.ok && res.data?.member) setRegisteredMember(res.data.member);
+                    });
                 }}
                 className="text-xs px-2.5 py-1 rounded-md bg-gray-100 hover:bg-emerald-100 text-emerald-900 font-mono"
               >
-                OS/24A/1042 (Amir)
+                OS/26A/1042 (Amir)
               </button>
               <button
                 type="button"
                 onClick={() => {
-                  setSearchQuery('OS/24A/2115');
-                  fetch('/api/members/MCAN-OS-2024-0002')
-                    .then((r) => r.json())
-                    .then((d) => setRegisteredMember(d.member));
+                  setSearchQuery('OS/26A/2115');
+                  safeFetchJson('/api/members/MCAN-OS-2026-0002')
+                    .then((res) => {
+                      if (res.ok && res.data?.member) setRegisteredMember(res.data.member);
+                    });
                 }}
                 className="text-xs px-2.5 py-1 rounded-md bg-gray-100 hover:bg-emerald-100 text-emerald-900 font-mono"
               >
-                OS/24A/2115 (Amira)
+                OS/26A/2115 (Amira)
               </button>
               <button
                 type="button"
                 onClick={() => {
-                  setSearchQuery('OS/24A/0891');
-                  fetch('/api/members/MCAN-OS-2024-0003')
-                    .then((r) => r.json())
-                    .then((d) => setRegisteredMember(d.member));
+                  setSearchQuery('OS/26B/0891');
+                  safeFetchJson('/api/members/MCAN-OS-2026-0003')
+                    .then((res) => {
+                      if (res.ok && res.data?.member) setRegisteredMember(res.data.member);
+                    });
                 }}
                 className="text-xs px-2.5 py-1 rounded-md bg-gray-100 hover:bg-emerald-100 text-emerald-900 font-mono"
               >
-                OS/24A/0891 (Imam)
+                OS/26B/0891 (Imam)
               </button>
             </div>
           </div>
@@ -385,13 +467,23 @@ export const RegistrationSection: React.FC<RegistrationSectionProps> = ({ onMemb
       {/* Registration Form */}
       {activeMode === 'register' && !registeredMember && (
         <div className="bg-white rounded-2xl border border-emerald-950/10 shadow-sm p-6 sm:p-10">
-          <div className="border-b border-gray-100 pb-5 mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-              New Member Registration Form
-            </h2>
-            <p className="text-xs sm:text-sm text-gray-500 mt-1">
-              Please enter your accurate NYSC details. All fields marked with an asterisk (<span className="text-red-500">*</span>) are required.
-            </p>
+          <div className="border-b border-gray-100 pb-5 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+                New Member Registration Form
+              </h2>
+              <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                Please enter your accurate NYSC details. All fields marked with an asterisk (<span className="text-red-500">*</span>) are required.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleAutoFillAndGenerate}
+              className="self-start sm:self-center text-xs text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3.5 py-1.5 rounded-xl font-semibold inline-flex items-center gap-1.5 transition-colors shadow-2xs"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+              <span>Fill Sample Data</span>
+            </button>
           </div>
 
           {errorMessage && (
@@ -417,7 +509,12 @@ export const RegistrationSection: React.FC<RegistrationSectionProps> = ({ onMemb
               <div className="flex flex-col sm:flex-row items-center gap-6">
                 {/* Image Preview Box */}
                 <div className="relative w-36 h-44 rounded-xl border-2 border-dashed border-emerald-700/40 bg-white overflow-hidden flex flex-col items-center justify-center shrink-0 shadow-xs">
-                  {passportUrl ? (
+                  {isCompressingPhoto ? (
+                    <div className="flex flex-col items-center justify-center p-3 text-center">
+                      <Loader2 className="w-8 h-8 text-emerald-600 animate-spin mb-2" />
+                      <span className="text-[11px] font-semibold text-emerald-900">Optimizing...</span>
+                    </div>
+                  ) : passportUrl ? (
                     <img
                       src={passportUrl}
                       alt="Uploaded Passport"
@@ -435,21 +532,44 @@ export const RegistrationSection: React.FC<RegistrationSectionProps> = ({ onMemb
 
                 {/* Upload Action */}
                 <div className="space-y-3 w-full">
-                  <div>
+                  <div className="flex flex-wrap items-center gap-3">
                     <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-800 text-white text-xs sm:text-sm font-semibold hover:bg-emerald-900 cursor-pointer shadow-2xs transition-all">
                       <Upload className="w-4 h-4 text-amber-300" />
-                      <span>Choose File from Device</span>
+                      <span>{isCompressingPhoto ? 'Processing...' : 'Upload Photo from Device'}</span>
                       <input
                         type="file"
                         accept="image/*"
+                        disabled={isCompressingPhoto}
                         onChange={handlePassportUpload}
                         className="hidden"
                       />
                     </label>
-                    <span className="text-xs text-gray-500 block mt-1">
-                      Max file size: 5MB (JPG, PNG, WEBP)
-                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const avatar = generateDefaultPassport(gender, fullName || 'MCAN Member');
+                        setPassportUrl(avatar);
+                        setPhotoInfo('Official Emblem Avatar selected');
+                        setErrorMessage(null);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-900 text-xs font-semibold transition-colors"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                      <span>Use Official Avatar</span>
+                    </button>
                   </div>
+
+                  {photoInfo ? (
+                    <div className="text-xs text-emerald-700 font-medium flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>{photoInfo}</span>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-gray-500 block">
+                      Photos are automatically compressed to ensure instant generation and fast download.
+                    </span>
+                  )}
 
                   {/* Sample portraits shortcut */}
                   <div className="pt-2">
@@ -463,6 +583,7 @@ export const RegistrationSection: React.FC<RegistrationSectionProps> = ({ onMemb
                           type="button"
                           onClick={() => {
                             setPassportUrl(sample.url);
+                            setPhotoInfo(`${sample.label} photo selected`);
                             setErrorMessage(null);
                           }}
                           className={`text-xs px-2.5 py-1 rounded-lg border transition-all ${
@@ -503,7 +624,7 @@ export const RegistrationSection: React.FC<RegistrationSectionProps> = ({ onMemb
               {/* State Code */}
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
-                  State Code (OS/24A/XXXX) <span className="text-red-500">*</span>
+                  State Code (OS/26C/XXXX) <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -511,38 +632,38 @@ export const RegistrationSection: React.FC<RegistrationSectionProps> = ({ onMemb
                     required
                     value={stateCode}
                     onChange={(e) => setStateCode(e.target.value.toUpperCase())}
-                    placeholder="OS/24B/1234"
+                    placeholder="OS/26C/1234"
                     className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 font-mono text-sm uppercase font-bold text-emerald-950"
                   />
                 </div>
                 <div className="flex gap-1.5 mt-1.5">
                   <button
                     type="button"
-                    onClick={() => setStateCode('OS/24A/')}
+                    onClick={() => setStateCode('OS/26A/')}
                     className="text-[11px] px-2 py-0.5 rounded-sm bg-gray-100 hover:bg-gray-200 text-gray-700 font-mono"
                   >
-                    OS/24A/
+                    OS/26A/
                   </button>
                   <button
                     type="button"
-                    onClick={() => setStateCode('OS/24B/')}
+                    onClick={() => setStateCode('OS/26B/')}
                     className="text-[11px] px-2 py-0.5 rounded-sm bg-gray-100 hover:bg-gray-200 text-gray-700 font-mono"
                   >
-                    OS/24B/
+                    OS/26B/
                   </button>
                   <button
                     type="button"
-                    onClick={() => setStateCode('OS/24C/')}
-                    className="text-[11px] px-2 py-0.5 rounded-sm bg-gray-100 hover:bg-gray-200 text-gray-700 font-mono"
+                    onClick={() => setStateCode('OS/26C/')}
+                    className="text-[11px] px-2 py-0.5 rounded-sm bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-mono font-bold"
                   >
-                    OS/24C/
+                    OS/26C/
                   </button>
                   <button
                     type="button"
-                    onClick={() => setStateCode('OS/25A/')}
+                    onClick={() => setStateCode('OS/27A/')}
                     className="text-[11px] px-2 py-0.5 rounded-sm bg-gray-100 hover:bg-gray-200 text-gray-700 font-mono"
                   >
-                    OS/25A/
+                    OS/27A/
                   </button>
                 </div>
               </div>
