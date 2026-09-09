@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Phone, Mail, Globe, ShieldCheck, Heart } from 'lucide-react';
+import { MapPin, Phone, Mail, Globe, ShieldCheck, Heart, Lock } from 'lucide-react';
 
 interface FooterProps {
   onNavigate: (tab: string) => void;
@@ -141,9 +141,18 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           <span>
             © {new Date().getFullYear()} Muslim Corpers Association of Nigeria (MCAN), Osun State Chapter. All Rights Reserved.
           </span>
-          <span className="flex items-center gap-1">
-            Motto: "In the name of Allah, Service to Humanity and the Nation"
-          </span>
+          <div className="flex items-center gap-3">
+            <span>Motto: "In the name of Allah, Service to Humanity and the Nation"</span>
+            <span className="text-emerald-800 hidden sm:inline">|</span>
+            <button
+              onClick={() => onNavigate('admin')}
+              className="hover:text-amber-300 text-emerald-400/80 transition-colors inline-flex items-center gap-1 text-[11px]"
+              title="Executive Admin Portal (/admin)"
+            >
+              <Lock className="w-3 h-3 text-amber-400/80" />
+              <span>Admin Access (/admin)</span>
+            </button>
+          </div>
         </div>
       </div>
     </footer>

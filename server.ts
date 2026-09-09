@@ -469,6 +469,36 @@ app.post('/api/donations/notify', (req, res) => {
   res.status(201).json({ success: true, message: 'Donation notification received. May Allah accept it and reward you abundantly!', donation: newDonation });
 });
 
+// 12. Admin Authentication Endpoint (Username & Password)
+app.post('/api/admin/login', (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({
+      success: false,
+      error: 'Username and password are required'
+    });
+  }
+
+  const cleanUser = String(username).trim().toUpperCase();
+  const cleanPass = String(password).trim();
+
+  if (cleanUser === 'MCANOSUN' && (cleanPass === 'MCANOSUN123' || cleanPass === 'mcanosun123')) {
+    return res.json({
+      success: true,
+      message: 'Admin authentication successful',
+      user: {
+        username: 'MCANOSUN',
+        role: 'State Administrator'
+      }
+    });
+  }
+
+  return res.status(401).json({
+    success: false,
+    error: 'Invalid administrator credentials. Expected Username: MCANOSUN'
+  });
+});
+
 // Explicit API 404 handler
 app.all('/api/*', (req, res) => {
   res.status(404).json({

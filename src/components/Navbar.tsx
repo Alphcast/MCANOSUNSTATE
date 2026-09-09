@@ -5,7 +5,6 @@ import {
   HeartHandshake,
   BookOpen,
   ShieldCheck,
-  LayoutDashboard,
   Menu,
   X,
   Compass,
@@ -17,16 +16,12 @@ interface NavbarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   announcements: Announcement[];
-  onOpenAdmin: () => void;
-  isAdminLoggedIn: boolean;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
   setActiveTab,
-  announcements,
-  onOpenAdmin,
-  isAdminLoggedIn
+  announcements
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pinnedAnnouncement = announcements.find((a) => a.pinned) || announcements[0];
@@ -43,10 +38,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-emerald-950/10 shadow-xs">
       {/* Top Banner: Islamic Motto & Announcements Ticker */}
-      <div className="bg-emerald-900 text-emerald-100 text-xs py-1.5 px-4">
+      <div className="bg-emerald-900 text-emerald-100 text-xs py-1.5 px-4 overflow-hidden">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-2 font-medium tracking-wide text-center sm:text-left">
-            <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
             <span className="font-serif text-amber-300">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</span>
             <span className="hidden md:inline text-emerald-300">|</span>
             <span className="hidden md:inline">Motto: In the Name of Allah, Service to Humanity and the Nation</span>
@@ -67,36 +62,34 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Logo & Chapter Brand */}
           <button
             onClick={() => setActiveTab('home')}
-            className="flex items-center gap-3.5 text-left focus:outline-hidden group"
+            className="flex items-center gap-3 text-left focus:outline-hidden group shrink-0"
           >
             {/* Crest / Emblem */}
             <div className="relative shrink-0">
               <img
                 src="/mcan-logo.png"
                 alt="MCAN Official Logo"
-                className="w-13 h-13 rounded-full object-contain bg-white p-0.5 shadow-md border-2 border-emerald-700/60 group-hover:scale-105 transition-transform"
+                className="w-12 h-12 rounded-full object-contain bg-white p-0.5 shadow-sm border border-emerald-700/50 group-hover:scale-105 transition-transform shrink-0"
               />
             </div>
 
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <span className="text-base sm:text-lg font-bold text-emerald-950 tracking-tight leading-tight group-hover:text-emerald-800 transition-colors">
-                  Muslim Corpers Association of Nigeria
+            <div className="flex flex-col min-w-0">
+              <span className="text-base sm:text-lg font-bold text-emerald-950 tracking-tight leading-tight group-hover:text-emerald-800 transition-colors whitespace-nowrap">
+                MCAN Osun State
+              </span>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="text-[10px] font-semibold px-2 py-0.5 bg-emerald-100 text-emerald-850 rounded-full whitespace-nowrap">
+                  Muslim Corpers Association
                 </span>
-              </div>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-xs font-semibold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full">
-                  Osun State Chapter
-                </span>
-                <span className="text-xs text-gray-500 hidden sm:inline">
-                  State Secretariat, Osogbo
+                <span className="text-[11px] text-gray-500 hidden md:inline whitespace-nowrap">
+                  • Secretariat, Osogbo
                 </span>
               </div>
             </div>
           </button>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center space-x-1">
+          <nav className="hidden lg:flex items-center space-x-1 xl:space-x-1.5">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
@@ -104,47 +97,25 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs xl:text-sm font-medium whitespace-nowrap transition-all ${
                     isActive
                       ? 'bg-emerald-800 text-white shadow-xs'
                       : 'text-gray-700 hover:text-emerald-900 hover:bg-emerald-50/70'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-amber-300' : 'text-emerald-700'}`} />
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-amber-300' : 'text-emerald-700'}`} />
                   <span>{item.label}</span>
                 </button>
               );
             })}
-
-            {/* Admin Dashboard button */}
-            <button
-              onClick={onOpenAdmin}
-              className={`ml-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                activeTab === 'admin'
-                  ? 'bg-amber-500 text-slate-950 border-amber-600 shadow-xs'
-                  : isAdminLoggedIn
-                  ? 'bg-emerald-100 text-emerald-900 border-emerald-300 hover:bg-emerald-200'
-                  : 'text-gray-600 border-gray-200 hover:border-emerald-400 hover:text-emerald-900 bg-gray-50'
-              }`}
-            >
-              <LayoutDashboard className="w-3.5 h-3.5 text-emerald-800" />
-              <span>{isAdminLoggedIn ? 'Admin Active' : 'Admin Portal'}</span>
-            </button>
           </nav>
 
-          {/* Mobile menu trigger */}
+          {/* Mobile menu trigger button */}
           <div className="flex items-center gap-2 lg:hidden">
-            <button
-              onClick={onOpenAdmin}
-              className="p-2 rounded-lg text-gray-700 hover:bg-gray-100"
-              title="Admin Portal"
-            >
-              <LayoutDashboard className="w-5 h-5 text-emerald-800" />
-            </button>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-lg text-gray-700 hover:bg-emerald-50 focus:outline-hidden"
-              aria-label="Toggle menu"
+              aria-label="Toggle navigation menu"
             >
               {mobileMenuOpen ? <X className="w-6 h-6 text-emerald-900" /> : <Menu className="w-6 h-6 text-emerald-900" />}
             </button>
@@ -171,23 +142,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                     : 'text-gray-700 hover:bg-emerald-50 hover:text-emerald-900'
                 }`}
               >
-                <Icon className={`w-5 h-5 ${isActive ? 'text-amber-300' : 'text-emerald-700'}`} />
+                <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-amber-300' : 'text-emerald-700'}`} />
                 <span>{item.label}</span>
               </button>
             );
           })}
-          <div className="pt-2 border-t border-gray-100">
-            <button
-              onClick={() => {
-                onOpenAdmin();
-                setMobileMenuOpen(false);
-              }}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold bg-gray-100 text-gray-800 hover:bg-emerald-100 hover:text-emerald-900"
-            >
-              <LayoutDashboard className="w-4 h-4 text-emerald-700" />
-              <span>{isAdminLoggedIn ? 'Open Admin Dashboard' : 'Admin Login / Portal'}</span>
-            </button>
-          </div>
         </div>
       )}
     </header>

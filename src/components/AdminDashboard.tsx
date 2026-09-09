@@ -10,12 +10,15 @@ import {
   XCircle,
   Plus,
   Eye,
+  EyeOff,
   Lock,
+  User,
   LogOut,
   Search,
   Filter,
   Bell,
-  HeartHandshake
+  HeartHandshake,
+  ArrowLeft
 } from 'lucide-react';
 import { Member, Announcement } from '../types';
 import { OSUN_LGAS, MCAN_POSTS, BATCH_LIST } from '../data/constants';
@@ -28,6 +31,7 @@ interface AdminDashboardProps {
   onRefreshAnnouncements: () => void;
   isAdminLoggedIn: boolean;
   setIsAdminLoggedIn: (status: boolean) => void;
+  onNavigateToHome?: () => void;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
@@ -37,10 +41,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   announcements,
   onRefreshAnnouncements,
   isAdminLoggedIn,
-  setIsAdminLoggedIn
+  setIsAdminLoggedIn,
+  onNavigateToHome
 }) => {
-  const [pinInput, setPinInput] = useState('');
+  const [adminUsername, setAdminUsername] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+
+  // Check saved admin session on mount
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem('mcan_admin_auth') === 'true') {
+        setIsAdminLoggedIn(true);
+      }
+    } catch {}
+  }, [setIsAdminLoggedIn]);
 
   // Search & Filter state
   const [search, setSearch] = useState('');
@@ -69,16 +85,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   }, [isAdminLoggedIn]);
 
-  // Handle Admin Login
+  // Handle Admin Login with USERNAME: MCANOSUN and PASSWORD: MCANOSUN123
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanPin = pinInput.trim().toLowerCase();
-    if (cleanPin === 'mcan2026admin' || cleanPin === 'mcan2024admin' || cleanPin === 'admin') {
+    const cleanUser = adminUsername.trim().toUpperCase();
+    const cleanPass = adminPassword.trim();
+
+    if (cleanUser === 'MCANOSUN' && (cleanPass === 'MCANOSUN123' || cleanPass === 'mcanosun123')) {
       setIsAdminLoggedIn(true);
       setAuthError(null);
+      try {
+        sessionStorage.setItem('mcan_admin_auth', 'true');
+      } catch {}
     } else {
-      setAuthError('Incorrect passkey. Default passkey: mcan2026admin');
+      setAuthError('Invalid username or password. Authorized credentials: Username: MCANOSUN | Password: MCANOSUN123');
     }
+  };
+
+  const handleLogout = () => {
+    try {
+      sessionStorage.removeItem('mcan_admin_auth');
+    } catch {}
+    setIsAdminLoggedIn(false);
   };
 
   // Toggle Member Verification Status
@@ -229,8 +257,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // If not logged in, show clean authentication screen
   if (!isAdminLoggedIn) {
     return (
-      <div className="max-w-md mx-auto px-4 py-16">
-        <div className="bg-white rounded-2xl border border-emerald-950/10 shadow-sm p-8 text-center">
+      <div className="max-w-md mx-auto px-4 py-12 sm:py-16">
+        {/* Return to Website link */}
+        {onNavigateToHome && (
+          <div className="mb-4">
+            <button
+              type="button"
+              onClick={onNavigateToHome}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800 hover:text-emerald-950 transition-colors"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Return to Main Website</span>
+            </button>
+          </div>
+        )}
+
+        <div className="bg-white rounded-2xl border border-emerald-950/10 shadow-md p-6 sm:p-8 text-center">
           <div className="w-20 h-20 rounded-full bg-white p-1 mx-auto mb-4 shadow-md border-2 border-emerald-700/60 flex items-center justify-center">
             <img
               src="/mcan-logo.png"
@@ -238,11 +280,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               className="w-full h-full object-contain rounded-full"
             />
           </div>
+
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 text-xs font-bold font-mono mb-2">
+            <Lock className="w-3 h-3 text-emerald-700" />
+            <span>Route: /admin</span>
+          </div>
+
           <h2 className="text-2xl font-black text-gray-900 tracking-tight">
             MCAN Osun Executive Portal
           </h2>
-          <p className="text-xs sm:text-sm text-gray-500 mt-1.5 mb-6">
-            Enter the authorized administrative passkey to access member records, statistical analytics, and announcements.
+          <p className="text-xs sm:text-sm text-gray-500 mt-1 mb-6">
+            Sign in with authorized executive credentials to manage member records, database verifications, and chapter announcements.
           </p>
 
           {authError && (
@@ -251,29 +299,80 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            <input
-              type="password"
-              value={pinInput}
-              onChange={(e) => setPinInput(e.target.value)}
-              placeholder="Enter Admin Passkey"
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-600 font-mono text-center text-base tracking-widest"
-            />
+          <form onSubmit={handleLogin} className="space-y-4 text-left">
+            {/* Username */}
+            <div>
+              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                Admin Username
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                  <User className="w-4 h-4" />
+                </div>
+                <input
+                  type="text"
+                  required
+                  value={adminUsername}
+                  onChange={(e) => setAdminUsername(e.target.value)}
+                  placeholder="MCANOSUN"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-600 font-mono text-sm uppercase text-gray-900 font-bold"
+                />
+              </div>
+            </div>
+
+            {/* Password */}
+            <div>
+              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                Admin Password
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                  <Lock className="w-4 h-4" />
+                </div>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  placeholder="Enter admin password"
+                  className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-600 text-sm font-medium text-gray-900"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
             <button
               type="submit"
-              className="w-full py-3 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl text-sm transition-all shadow-sm"
+              className="w-full py-3 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl text-sm transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer mt-2"
             >
-              Authenticate & Open Dashboard
+              <Lock className="w-4 h-4 text-amber-300" />
+              <span>Authenticate & Open Dashboard</span>
             </button>
           </form>
 
+          {/* Credentials Guide */}
           <div className="mt-6 pt-5 border-t border-gray-100 text-xs text-gray-500">
-            <span>Demo default passkey: </span>
+            <div className="text-gray-600 font-semibold mb-1.5">Authorized Credentials:</div>
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-700 font-mono text-[11px] space-y-1">
+              <div>Username: <strong className="text-emerald-800">MCANOSUN</strong></div>
+              <div>Password: <strong className="text-emerald-800">MCANOSUN123</strong></div>
+            </div>
             <button
-              onClick={() => setPinInput('mcan2026admin')}
-              className="font-mono text-emerald-700 font-bold underline ml-1"
+              type="button"
+              onClick={() => {
+                setAdminUsername('MCANOSUN');
+                setAdminPassword('MCANOSUN123');
+              }}
+              className="mt-2.5 text-[11px] font-semibold text-emerald-700 hover:text-emerald-900 hover:underline"
             >
-              mcan2026admin
+              Click to autofill credentials
             </button>
           </div>
         </div>
@@ -293,18 +392,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           />
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900">
-                Executive Console
+              <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-mono">
+                Route: /admin
               </span>
-              <span className="text-xs text-gray-500">• Live Database Connected</span>
+              <span className="text-xs text-gray-500">• Executive Database Console</span>
             </div>
-            <h1 className="text-2xl font-black text-gray-900 mt-0.5">
+            <h1 className="text-xl sm:text-2xl font-black text-gray-900 mt-0.5">
               MCAN Osun State Chapter Admin Dashboard
             </h1>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+          {onNavigateToHome && (
+            <button
+              onClick={onNavigateToHome}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-gray-200 text-gray-700 text-xs font-semibold hover:bg-gray-50 transition-colors shadow-2xs"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Main Website</span>
+            </button>
+          )}
+
           <button
             onClick={() => setShowAddAnnouncement(true)}
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-800 text-white text-xs font-semibold hover:bg-emerald-900 transition-colors shadow-2xs"
@@ -322,11 +431,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </button>
 
           <button
-            onClick={() => setIsAdminLoggedIn(false)}
+            onClick={handleLogout}
             title="Log Out"
-            className="p-2 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-100"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold transition-colors"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Logout</span>
           </button>
         </div>
       </div>

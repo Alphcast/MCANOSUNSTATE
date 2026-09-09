@@ -78,22 +78,59 @@ export default function App() {
     refreshAnnouncements();
     refreshPrograms();
 
-    // Check URL parameters (e.g. ?verify=CODE or ?tab=register)
-    const params = new URLSearchParams(window.location.search);
-    const verifyParam = params.get('verify');
-    const tabParam = params.get('tab');
+    // Check URL route (e.g. /admin, ?verify=CODE, or ?tab=register)
+    const parseRoute = () => {
+      const pathname = window.location.pathname.toLowerCase().replace(/\/+$/, '');
+      const params = new URLSearchParams(window.location.search);
+      const hash = window.location.hash.toLowerCase();
 
-    if (verifyParam) {
-      setInitialVerifyCode(verifyParam);
-      setActiveTab('verify');
-    } else if (tabParam) {
-      setActiveTab(tabParam);
-    }
+      // Dedicated /admin route
+      if (pathname === '/admin' || pathname.startsWith('/admin') || params.get('tab') === 'admin' || hash === '#admin') {
+        setActiveTab('admin');
+        return;
+      }
+
+      const verifyParam = params.get('verify');
+      if (verifyParam) {
+        setInitialVerifyCode(verifyParam);
+        setActiveTab('verify');
+        return;
+      }
+
+      const tabParam = params.get('tab');
+      if (tabParam && ['home', 'register', 'verify', 'programs', 'resources', 'donate'].includes(tabParam)) {
+        setActiveTab(tabParam);
+        return;
+      }
+
+      // Friendly path aliases if typed directly
+      if (pathname === '/register') setActiveTab('register');
+      else if (pathname === '/verify') setActiveTab('verify');
+      else if (pathname === '/programs') setActiveTab('programs');
+      else if (pathname === '/resources') setActiveTab('resources');
+      else if (pathname === '/donate') setActiveTab('donate');
+      else setActiveTab('home');
+    };
+
+    parseRoute();
+    window.addEventListener('popstate', parseRoute);
+    return () => window.removeEventListener('popstate', parseRoute);
   }, []);
 
   const handleNavigate = (tab: string) => {
     setActiveTab(tab);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Synchronize browser history and URL cleanly
+    try {
+      if (tab === 'admin') {
+        window.history.pushState({ tab: 'admin' }, '', '/admin');
+      } else if (tab === 'home') {
+        window.history.pushState({ tab: 'home' }, '', '/');
+      } else {
+        window.history.pushState({ tab }, '', `/?tab=${tab}`);
+      }
+    } catch {}
   };
 
   return (
@@ -103,8 +140,6 @@ export default function App() {
         activeTab={activeTab}
         setActiveTab={handleNavigate}
         announcements={announcements}
-        onOpenAdmin={() => handleNavigate('admin')}
-        isAdminLoggedIn={isAdminLoggedIn}
       />
 
       {/* Main Content Area */}
@@ -154,6 +189,7 @@ export default function App() {
             onRefreshAnnouncements={refreshAnnouncements}
             isAdminLoggedIn={isAdminLoggedIn}
             setIsAdminLoggedIn={setIsAdminLoggedIn}
+            onNavigateToHome={() => handleNavigate('home')}
           />
         )}
       </main>
