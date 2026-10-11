@@ -64,6 +64,22 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               </li>
               <li>
                 <button
+                  onClick={() => onNavigate('contacts')}
+                  className="hover:text-amber-300 transition-colors text-left"
+                >
+                  Leadership & Advisory Directory
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigate('contact')}
+                  className="hover:text-amber-300 text-amber-300/90 font-medium transition-colors text-left"
+                >
+                  Contact Officials (Ameer, Ameerah, Gen. Sec)
+                </button>
+              </li>
+              <li>
+                <button
                   onClick={() => onNavigate('resources')}
                   className="hover:text-amber-300 transition-colors text-left"
                 >
@@ -112,15 +128,15 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             <div className="space-y-2 text-emerald-200/90 text-xs">
               <div className="flex items-center gap-2">
                 <Phone className="w-3.5 h-3.5 text-amber-400" />
-                <span>State Amir: +234 803 456 7890</span>
+                <span>Ameer: 09056498489 (Bro. Luqman)</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-3.5 h-3.5 text-emerald-400" />
-                <span>State Amira: +234 814 987 6543</span>
+                <span>Ameerah: 09039454686 (Sis. Bilqees)</span>
               </div>
               <div className="flex items-center gap-2">
-                <Phone className="w-3.5 h-3.5 text-emerald-400" />
-                <span>State Imam: +234 706 112 2334</span>
+                <Phone className="w-3.5 h-3.5 text-amber-300" />
+                <span>Gen. Sec: 07039101391 (Bro. Abdulsalam)</span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-3.5 h-3.5 text-amber-400" />

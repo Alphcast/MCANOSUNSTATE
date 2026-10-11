@@ -8,7 +8,9 @@ import {
   Menu,
   X,
   Compass,
-  Bell
+  Bell,
+  Users,
+  Mail
 } from 'lucide-react';
 import { Announcement } from '../types';
 
@@ -31,7 +33,9 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'register', label: 'Register & ID Card', icon: IdCard },
     { id: 'verify', label: 'Verify Member', icon: ShieldCheck },
     { id: 'programs', label: 'Programs & Schedule', icon: Calendar },
-    { id: 'resources', label: 'Resource Portal', icon: BookOpen },
+    { id: 'contacts', label: 'Leadership', icon: Users },
+    { id: 'contact', label: 'Contact Us', icon: Mail },
+    { id: 'resources', label: 'Resources', icon: BookOpen },
     { id: 'donate', label: 'Zakat & Donation', icon: HeartHandshake }
   ];
 

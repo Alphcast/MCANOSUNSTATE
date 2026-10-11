@@ -9,7 +9,11 @@ import {
   CalendarPlus,
   Sparkles,
   Check,
-  Search
+  Search,
+  Eye,
+  Download,
+  X,
+  FileImage
 } from 'lucide-react';
 import { ProgramActivity, ProgramFrequency } from '../types';
 
@@ -22,6 +26,7 @@ export const ProgramsSection: React.FC<ProgramsSectionProps> = ({ programs }) =>
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeFlyerProgram, setActiveFlyerProgram] = useState<ProgramActivity | null>(null);
 
   const frequencies: { id: 'all' | ProgramFrequency; label: string; count: number }[] = [
     { id: 'all', label: 'All Activities', count: programs.length },
@@ -30,7 +35,7 @@ export const ProgramsSection: React.FC<ProgramsSectionProps> = ({ programs }) =>
     { id: 'yearly', label: 'Yearly Programs', count: programs.filter((p) => p.frequency === 'yearly').length }
   ];
 
-  const categories = ['all', 'Spiritual', 'Dawah', 'Welfare', 'Educational', 'Conference', 'Camp'];
+  const categories = ['all', 'Spiritual', 'Dawah', 'Welfare', 'Educational', 'Conference'];
 
   const filteredPrograms = programs.filter((p) => {
     const matchesFreq = selectedFrequency === 'all' || p.frequency === selectedFrequency;
@@ -88,7 +93,7 @@ END:VCALENDAR`;
             MCAN Osun Program Activities & Real-Time Schedule
           </h1>
           <p className="mt-2 text-sm sm:text-base text-emerald-100 leading-relaxed">
-            Stay updated in real time with our weekly spiritual gatherings, monthly executive & CDS community outreaches, and flagship yearly state conferences across Osun State.
+            Stay updated in real time with our weekly spiritual sessions on WhatsApp, monthly Tadhkirah & Sisters Circle, and the flagship Annual State Islamic Convention across Osun State.
           </p>
         </div>
 
@@ -211,6 +216,57 @@ END:VCALENDAR`;
                     {p.title}
                   </h3>
 
+                  {/* Flyer Banner if available (Dynamic for any program) */}
+                  {p.flyerUrl && (
+                    <div className="mb-4 rounded-xl overflow-hidden border border-amber-300/60 bg-gradient-to-r from-emerald-950 to-emerald-900 shadow-xs group relative">
+                      <div className="flex flex-col sm:flex-row items-center gap-3 p-3">
+                        <div
+                          onClick={() => setActiveFlyerProgram(p)}
+                          className="w-24 h-32 rounded-lg overflow-hidden shrink-0 border border-amber-400/80 shadow-md cursor-pointer relative group-hover:scale-102 transition-transform"
+                        >
+                          <img
+                            src={p.flyerUrl}
+                            alt={`${p.title} Official Flyer`}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Eye className="w-5 h-5 text-white" />
+                          </div>
+                        </div>
+
+                        <div className="flex-1 text-white">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-400 text-emerald-950 text-[10px] font-extrabold uppercase tracking-wider mb-1">
+                            <FileImage className="w-3 h-3" />
+                            Official Program Flyer
+                          </span>
+                          <h4 className="text-xs sm:text-sm font-bold text-white line-clamp-1">
+                            {p.schedulePattern}
+                          </h4>
+                          <p className="text-[11px] text-emerald-200/90 mt-0.5 line-clamp-1">
+                            📍 {p.venue}
+                          </p>
+                          <div className="mt-2.5 flex items-center gap-2">
+                            <button
+                              onClick={() => setActiveFlyerProgram(p)}
+                              className="px-3 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-emerald-950 text-xs font-bold inline-flex items-center gap-1.5 transition-colors shadow-2xs"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              <span>View Flyer</span>
+                            </button>
+                            <a
+                              href={p.flyerUrl}
+                              download={`MCAN_Osun_${p.title.replace(/\s+/g, '_')}_Flyer.jpg`}
+                              className="px-3 py-1.5 rounded-lg bg-emerald-800 hover:bg-emerald-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 transition-colors"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              <span>Download</span>
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Schedule Pattern */}
                   <div className="space-y-2 mb-4 text-xs sm:text-sm text-gray-700">
                     <div className="flex items-start gap-2.5">
@@ -237,11 +293,21 @@ END:VCALENDAR`;
 
                 {/* Footer Action */}
                 <div className="border-t border-gray-100 pt-3 flex items-center justify-between text-xs">
-                  <div className="text-gray-500">
+                  <div className="text-gray-500 line-clamp-1 pr-2">
                     <span className="font-medium">Lead:</span> {p.coordinator}
                   </div>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {p.flyerUrl && (
+                      <button
+                        onClick={() => setActiveFlyerProgram(p)}
+                        title="View Official Flyer"
+                        className="px-2.5 py-1.5 rounded-lg border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 transition-colors font-bold inline-flex items-center gap-1"
+                      >
+                        <FileImage className="w-3.5 h-3.5 text-amber-700" />
+                        <span>Flyer</span>
+                      </button>
+                    )}
                     <button
                       onClick={() => generateIcs(p)}
                       title="Add to Calendar (.ics)"
@@ -279,6 +345,97 @@ END:VCALENDAR`;
           <p className="text-sm text-gray-500 mt-1">
             Try choosing a different frequency tab or clear your category filter.
           </p>
+        </div>
+      )}
+
+      {/* Interactive Full Flyer Lightbox Modal (Dynamic for each program) */}
+      {activeFlyerProgram && activeFlyerProgram.flyerUrl && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
+          onClick={() => setActiveFlyerProgram(null)}
+        >
+          <div
+            className="bg-white rounded-3xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl relative my-6 flex flex-col items-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button
+              onClick={() => setActiveFlyerProgram(null)}
+              className="absolute top-4 right-4 p-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors z-10"
+              aria-label="Close modal"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Modal Header */}
+            <div className="text-center mb-4 w-full pr-8">
+              <span className="inline-block text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-amber-100 text-amber-900 mb-1">
+                Official {activeFlyerProgram.frequency} Program Poster
+              </span>
+              <h3 className="text-xl font-extrabold text-gray-900">
+                {activeFlyerProgram.title}
+              </h3>
+              <p className="text-xs text-emerald-800 font-semibold mt-0.5">
+                {activeFlyerProgram.schedulePattern} • {activeFlyerProgram.venue}
+              </p>
+            </div>
+
+            {/* Flyer Image Container */}
+            <div className="w-full max-h-[70vh] rounded-2xl overflow-hidden border border-gray-200 bg-emerald-950 flex items-center justify-center shadow-inner">
+              <img
+                src={activeFlyerProgram.flyerUrl}
+                alt={`${activeFlyerProgram.title} Official Flyer`}
+                className="max-h-[70vh] w-auto object-contain"
+              />
+            </div>
+
+            {/* Program Details Snippet */}
+            <div className="mt-3 w-full bg-gray-50 rounded-xl p-3 border border-gray-200 text-xs text-gray-700 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-gray-900">Coordinator / Directorate:</span>
+                <span className="text-emerald-900 font-semibold">{activeFlyerProgram.coordinator}</span>
+              </div>
+              <p className="text-gray-600 line-clamp-2 pt-1 border-t border-gray-200/60">
+                {activeFlyerProgram.description}
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="mt-4 pt-3 border-t border-gray-100 w-full flex flex-wrap items-center justify-between gap-3">
+              <div className="text-xs text-gray-500">
+                <span>Save or share with corps members and branches across Osun State.</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <a
+                  href={activeFlyerProgram.flyerUrl}
+                  download={`MCAN_Osun_${activeFlyerProgram.title.replace(/\s+/g, '_')}_Flyer.jpg`}
+                  className="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold text-xs sm:text-sm inline-flex items-center gap-1.5 transition-colors shadow-xs"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Download Flyer</span>
+                </a>
+                <button
+                  onClick={() => {
+                    const text = `*MCAN Osun State Program - ${activeFlyerProgram.title}*\n📅 ${activeFlyerProgram.schedulePattern}\n📍 ${activeFlyerProgram.venue}\n${activeFlyerProgram.description}\n\nPortal: ${window.location.origin}`;
+                    if (navigator.share) {
+                      navigator.share({
+                        title: `${activeFlyerProgram.title} Flyer`,
+                        text,
+                        url: window.location.origin
+                      });
+                    } else {
+                      navigator.clipboard.writeText(text);
+                      alert('Program details copied to clipboard!');
+                    }
+                  }}
+                  className="px-4 py-2 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-semibold text-xs sm:text-sm inline-flex items-center gap-1.5 transition-colors"
+                >
+                  <Share2 className="w-4 h-4" />
+                  <span>Share</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

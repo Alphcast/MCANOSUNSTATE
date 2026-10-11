@@ -2,11 +2,11 @@ import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
-import { INITIAL_MEMBERS, INITIAL_ANNOUNCEMENTS, INITIAL_PROGRAMS } from './src/data/constants.ts';
-import { Member, Announcement, ProgramActivity } from './src/types.ts';
+import { INITIAL_MEMBERS, INITIAL_ANNOUNCEMENTS, INITIAL_PROGRAMS, LEADERSHIP_CONTACTS } from './src/data/constants.ts';
+import { Member, Announcement, ProgramActivity, LeadershipContact, InquiryMessage } from './src/types.ts';
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
@@ -15,6 +15,7 @@ const DATA_DIR = path.join(process.cwd(), 'data');
 const MEMBERS_FILE = path.join(DATA_DIR, 'members.json');
 const ANNOUNCEMENTS_FILE = path.join(DATA_DIR, 'announcements.json');
 const DONATIONS_FILE = path.join(DATA_DIR, 'donations.json');
+const INQUIRIES_FILE = path.join(DATA_DIR, 'inquiries.json');
 
 // Ensure data folder exists
 if (!fs.existsSync(DATA_DIR)) {
@@ -116,6 +117,26 @@ function saveDonations(donations: DonationRecord[]) {
     fs.writeFileSync(DONATIONS_FILE, JSON.stringify(donations, null, 2), 'utf-8');
   } catch (err) {
     console.error('Error saving donations file:', err);
+  }
+}
+
+function loadInquiries(): InquiryMessage[] {
+  try {
+    if (fs.existsSync(INQUIRIES_FILE)) {
+      const content = fs.readFileSync(INQUIRIES_FILE, 'utf-8');
+      return JSON.parse(content);
+    }
+  } catch (err) {
+    console.error('Error reading inquiries file:', err);
+  }
+  return [];
+}
+
+function saveInquiries(inquiries: InquiryMessage[]) {
+  try {
+    fs.writeFileSync(INQUIRIES_FILE, JSON.stringify(inquiries, null, 2), 'utf-8');
+  } catch (err) {
+    console.error('Error saving inquiries file:', err);
   }
 }
 
@@ -469,7 +490,115 @@ app.post('/api/donations/notify', (req, res) => {
   res.status(201).json({ success: true, message: 'Donation notification received. May Allah accept it and reward you abundantly!', donation: newDonation });
 });
 
-// 12. Admin Authentication Endpoint (Username & Password)
+// 12. Leadership & Advisory Contacts API
+app.get('/api/leadership', (_req, res) => {
+  res.json({ success: true, count: LEADERSHIP_CONTACTS.length, data: LEADERSHIP_CONTACTS });
+});
+
+// 13. Inquiries API (Direct routing to Ameer, Ameerah, and General Secretary)
+app.get('/api/inquiries', (req, res) => {
+  const inquiries = loadInquiries();
+  const { recipient, status } = req.query;
+  let filtered = [...inquiries];
+  if (recipient && typeof recipient === 'string' && recipient !== 'all') {
+    filtered = filtered.filter((i) => i.recipient === recipient || i.recipient === 'all');
+  }
+  if (status && typeof status === 'string') {
+    filtered = filtered.filter((i) => i.status === status);
+  }
+  res.json({ success: true, count: filtered.length, data: filtered });
+});
+
+app.post('/api/inquiries', (req, res) => {
+  try {
+    const {
+      senderName,
+      senderEmail,
+      senderPhone,
+      senderStateCode,
+      recipient,
+      category,
+      subject,
+      message
+    } = req.body;
+
+    if (!senderName || !senderEmail || !message) {
+      return res.status(400).json({
+        success: false,
+        error: 'Sender name, valid email address, and message are required.'
+      });
+    }
+
+    const recipientMap: Record<string, { name: string; role: string; phone: string }> = {
+      ameer: {
+        name: 'Brother Luqman Waliyullah Olamide',
+        role: 'Ameer (State President)',
+        phone: '09056498489'
+      },
+      ameerah: {
+        name: 'Sister Kofoworola Bilqees',
+        role: 'Ameerah (State Vice President)',
+        phone: '09039454686'
+      },
+      general_secretary: {
+        name: 'Brother Abdulsalam Ayinla Abdullah',
+        role: 'General Secretary',
+        phone: '07039101391'
+      },
+      all: {
+        name: 'Executive Leadership (Ameer, Ameerah & Gen. Sec)',
+        role: 'State Executive Council',
+        phone: '09056498489'
+      }
+    };
+
+    const targetKey = recipient && recipientMap[recipient] ? recipient : 'all';
+    const targetOfficial = recipientMap[targetKey];
+
+    const inquiries = loadInquiries();
+    const newInquiry: InquiryMessage = {
+      id: `MCAN-INQ-${Date.now().toString().slice(-6)}`,
+      senderName: String(senderName).trim(),
+      senderEmail: String(senderEmail).trim().toLowerCase(),
+      senderPhone: senderPhone ? String(senderPhone).trim() : '',
+      senderStateCode: senderStateCode ? String(senderStateCode).trim().toUpperCase() : '',
+      recipient: targetKey as any,
+      recipientName: targetOfficial.name,
+      recipientRole: targetOfficial.role,
+      category: category ? String(category).trim() : 'General',
+      subject: subject ? String(subject).trim() : 'General Inquiry via MCAN Portal',
+      message: String(message).trim(),
+      createdAt: new Date().toISOString(),
+      status: 'pending'
+    };
+
+    inquiries.unshift(newInquiry);
+    saveInquiries(inquiries);
+
+    res.status(201).json({
+      success: true,
+      message: `Your inquiry has been logged and routed to ${targetOfficial.name} (${targetOfficial.role}).`,
+      inquiry: newInquiry
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message || 'Failed to submit inquiry' });
+  }
+});
+
+app.patch('/api/inquiries/:id/status', (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+  const inquiries = loadInquiries();
+  const index = inquiries.findIndex((i) => i.id === id);
+  if (index === -1) {
+    return res.status(404).json({ success: false, error: 'Inquiry not found' });
+  }
+  inquiries[index].status = status;
+  saveInquiries(inquiries);
+  res.json({ success: true, inquiry: inquiries[index] });
+});
+
+// 14. Admin Authentication Endpoint (Username & Password)
 app.post('/api/admin/login', (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {

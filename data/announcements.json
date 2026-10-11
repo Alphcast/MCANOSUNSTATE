@@ -1,38 +1,38 @@
 [
   {
     "id": "anc-01",
-    "title": "Urgent: Registration for 2026 Batch C Corpers & ID Card Issuance",
-    "category": "Urgent",
-    "content": "All Muslim Corps Members recently deployed or redeployed to Osun State are hereby notified to complete their official MCAN Membership Registration on this portal. Ensure you upload a sharp passport photo and verify your state code (OS/26C/XXXX) to immediately generate your verifiable Front & Back digital ID card.",
-    "publishedAt": "2026-08-28T08:00:00.000Z",
+    "title": "Upcoming: 2026 MCAN Osun State Annual Convention (31st Oct – 1st Nov Biidhnillah)",
+    "category": "Yearly",
+    "content": "Assalamu Alaykum Warahmatullah! The State Executive Council cordially invites all Muslim Corps Members across the 30 LGAs, alumni, and stakeholders to our Annual State Convention holding on the 31st of October to 1st of November Biidhnillah. Check the Programs section to view and download the official convention flyer!",
+    "publishedAt": "2026-09-01T08:00:00.000Z",
     "pinned": true,
-    "author": "State Public Relations Officer (PRO)"
+    "author": "General Secretary (Brother Abdulsalam Ayinla Abdullah)"
   },
   {
     "id": "anc-02",
-    "title": "Weekly Sunday Usrah Theme: Navigating PPA Challenges through Prophetic Patience",
+    "title": "Weekly Fiqh, Hadith & Tawheed Study Circles on WhatsApp",
     "category": "Weekly",
-    "content": "Assalamu Alaykum Warahmatullah. This Sunday's Usrah will hold at MCAN Central Mosque, Osogbo. Guest Speaker: Dr. Sheikh Luqman Olayiwola (Head of Arabic Dept, Fountain University). Time: 10:00 AM prompt. Free transportation provided from Ede and Ife junctions.",
-    "publishedAt": "2026-08-30T16:00:00.000Z",
+    "content": "Join our weekly educational series examining the fundamentals of Fiqh, Hadith, and Islamic Creed (Tawheed) directly on our dedicated state WhatsApp knowledge group. Contact the Ameer (09056498489) or General Secretary (07039101391) to join.",
+    "publishedAt": "2026-09-02T10:00:00.000Z",
     "pinned": true,
-    "author": "Education & Da'wah Directorate"
+    "author": "Ameer (Brother Luqman Waliyullah Olamide)"
   },
   {
     "id": "anc-03",
-    "title": "Notice on MCAN Corpers Lodge Accommodation Vacancies in Osogbo & Ede",
-    "category": "General",
-    "content": "Limited spaces are currently open for male and female Muslim corpers seeking serene, prayer-centered, and affordable lodge accommodation close to state government secretariats and major schools. Visit the Secretariat or contact the Welfare Director.",
-    "publishedAt": "2026-08-25T12:00:00.000Z",
+    "title": "Monthly Tadhkirah (Last Sunday) & Sisters Circle (First Sunday)",
+    "category": "Monthly",
+    "content": "Mark your calendars for our monthly spiritual gatherings: Sisters Circle holds on the First Sunday of each month coordinated by Ameerah (09039454686), and the statewide Tadhkirah holds on the Last Sunday of every month.",
+    "publishedAt": "2026-09-03T12:00:00.000Z",
     "pinned": false,
-    "author": "Welfare Director"
+    "author": "Ameerah (Sister Kofoworola Bilqees)"
   },
   {
     "id": "anc-04",
-    "title": "Upcoming Monthly Medical CDS in Ejigbo Local Government",
-    "category": "Monthly",
-    "content": "All Muslim Doctors, Pharmacists, Medical Laboratory Scientists, and Nurses in 2026 Batch A, B & C are requested to join the prep briefing for our upcoming medical caravan to Ejigbo Central Market.",
-    "publishedAt": "2026-08-20T10:00:00.000Z",
+    "title": "Official Member Registration & Verifiable Digital ID Card Generation",
+    "category": "Urgent",
+    "content": "All serving Muslim corps members in Osun State are required to register their accurate NYSC state code on this portal to generate their official front and back ID cards. If you need any assistance, reach out directly to the Ameer (09056498489), Ameerah (09039454686), or General Secretary (07039101391).",
+    "publishedAt": "2026-09-04T09:00:00.000Z",
     "pinned": false,
-    "author": "Medical CDS Team"
+    "author": "MCAN Osun State Executive Council"
   }
 ]

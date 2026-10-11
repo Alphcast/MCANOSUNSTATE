@@ -18,9 +18,12 @@ import {
   Filter,
   Bell,
   HeartHandshake,
-  ArrowLeft
+  ArrowLeft,
+  Mail,
+  MessageSquare,
+  ExternalLink
 } from 'lucide-react';
-import { Member, Announcement } from '../types';
+import { Member, Announcement, InquiryMessage } from '../types';
 import { OSUN_LGAS, MCAN_POSTS, BATCH_LIST } from '../data/constants';
 
 interface AdminDashboardProps {
@@ -76,14 +79,39 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Donations list state
   const [donations, setDonations] = useState<any[]>([]);
 
+  // Inquiries list state
+  const [inquiries, setInquiries] = useState<InquiryMessage[]>([]);
+  const [inquiryFilter, setInquiryFilter] = useState<'all' | 'pending' | 'responded'>('all');
+
+  const refreshInquiries = () => {
+    fetch('/api/inquiries')
+      .then((r) => r.json())
+      .then((d) => setInquiries(d.data || []))
+      .catch((err) => console.warn('Failed to load inquiries:', err));
+  };
+
   useEffect(() => {
     if (isAdminLoggedIn) {
       fetch('/api/donations')
         .then((r) => r.json())
         .then((d) => setDonations(d.data || []))
         .catch(() => {});
+      refreshInquiries();
     }
   }, [isAdminLoggedIn]);
+
+  const handleUpdateInquiryStatus = async (id: string, status: 'pending' | 'responded' | 'archived') => {
+    try {
+      await fetch(`/api/inquiries/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      refreshInquiries();
+    } catch (err) {
+      console.error('Failed to update inquiry status:', err);
+    }
+  };
 
   // Handle Admin Login with USERNAME: MCANOSUN and PASSWORD: MCANOSUN123
   const handleLogin = (e: React.FormEvent) => {
@@ -253,6 +281,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const topLgas = Object.entries(lgaMap)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5);
+
+  const filteredInquiries = inquiries.filter((inq) => {
+    if (inquiryFilter === 'all') return true;
+    return inq.status === inquiryFilter;
+  });
+  const pendingInquiriesCount = inquiries.filter((i) => i.status === 'pending').length;
 
   // If not logged in, show clean authentication screen
   if (!isAdminLoggedIn) {
@@ -744,6 +778,153 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </p>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Corps Member Inquiries Routed to Officials (Ameer, Ameerah, Gen Sec) */}
+      <div className="bg-white rounded-2xl border border-emerald-950/10 shadow-xs p-5 sm:p-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <Mail className="w-5 h-5 text-emerald-800" />
+            <div>
+              <h3 className="font-bold text-gray-900 text-base">
+                Direct Inquiries Routed to Officials
+              </h3>
+              <p className="text-xs text-gray-500">
+                Messages submitted via the Contact Us portal addressed to the Ameer, Ameerah, and General Secretary.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500 font-medium">Filter:</span>
+            {(['all', 'pending', 'responded'] as const).map((filterVal) => (
+              <button
+                key={filterVal}
+                onClick={() => setInquiryFilter(filterVal)}
+                className={`text-xs px-2.5 py-1 rounded-lg capitalize font-bold transition-colors ${
+                  inquiryFilter === filterVal
+                    ? 'bg-emerald-800 text-white shadow-2xs'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {filterVal}
+                {filterVal === 'pending' && pendingInquiriesCount > 0 && (
+                  <span className="ml-1 px-1.5 py-0.2 rounded-full bg-amber-400 text-emerald-950 text-[10px]">
+                    {pendingInquiriesCount}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {filteredInquiries.length > 0 ? (
+            filteredInquiries.map((inq) => (
+              <div
+                key={inq.id}
+                className="p-4 rounded-2xl border border-gray-200 bg-gray-50/70 hover:bg-white transition-all space-y-3"
+              >
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900">
+                      {inq.id}
+                    </span>
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-purple-100 text-purple-900">
+                      {inq.category}
+                    </span>
+                    <span className="text-[11px] font-semibold text-gray-500">
+                      Attn: <strong className="text-emerald-900">{inq.recipientName}</strong>
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] text-gray-400">
+                      {new Date(inq.createdAt).toLocaleDateString('en-GB', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </span>
+                    <select
+                      value={inq.status}
+                      onChange={(e) => handleUpdateInquiryStatus(inq.id, e.target.value as any)}
+                      className={`text-xs font-bold px-2.5 py-1 rounded-md border text-center transition-colors ${
+                        inq.status === 'responded'
+                          ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                          : inq.status === 'archived'
+                          ? 'bg-gray-100 text-gray-600 border-gray-300'
+                          : 'bg-amber-100 text-amber-900 border-amber-300'
+                      }`}
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="responded">Responded</option>
+                      <option value="archived">Archived</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-200/60 pt-2">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-700 mb-1.5 font-medium">
+                    <div>
+                      Sender: <strong className="text-gray-900">{inq.senderName}</strong>
+                    </div>
+                    {inq.senderStateCode && (
+                      <div>
+                        State Code: <span className="font-mono font-bold text-emerald-900">{inq.senderStateCode}</span>
+                      </div>
+                    )}
+                    <div>
+                      Email: <a href={`mailto:${inq.senderEmail}`} className="text-emerald-800 hover:underline">{inq.senderEmail}</a>
+                    </div>
+                    {inq.senderPhone && (
+                      <div>
+                        Phone: <a href={`tel:${inq.senderPhone}`} className="font-mono text-emerald-800 hover:underline">{inq.senderPhone}</a>
+                      </div>
+                    )}
+                  </div>
+
+                  <h4 className="font-bold text-gray-900 text-sm">{inq.subject}</h4>
+                  <p className="text-xs text-gray-600 leading-relaxed mt-1 whitespace-pre-wrap bg-white p-3 rounded-xl border border-gray-200/70">
+                    {inq.message}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-1">
+                  {inq.senderPhone && (
+                    <a
+                      href={`https://wa.me/234${inq.senderPhone.replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(
+                        `*Assalamu Alaykum ${inq.senderName},*\nThis is in response to your inquiry (${inq.id}) regarding "${inq.subject}".`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-900 border border-emerald-200 hover:bg-emerald-100 text-xs font-semibold inline-flex items-center gap-1.5 transition-colors"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5 text-emerald-700" />
+                      <span>Reply on WhatsApp</span>
+                    </a>
+                  )}
+
+                  <a
+                    href={`mailto:${inq.senderEmail}?subject=Re: ${encodeURIComponent(inq.subject)}&body=${encodeURIComponent(
+                      `Assalamu Alaykum ${inq.senderName},\n\nThank you for reaching out to MCAN Osun State Executive Council (Ref: ${inq.id}).\n\n`
+                    )}`}
+                    className="px-3 py-1.5 rounded-lg bg-emerald-800 text-white hover:bg-emerald-900 text-xs font-semibold inline-flex items-center gap-1.5 transition-colors"
+                  >
+                    <Mail className="w-3.5 h-3.5" />
+                    <span>Reply via Email</span>
+                  </a>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-xs text-gray-500 py-6 text-center">
+              No inquiries found for this filter.
+            </p>
+          )}
         </div>
       </div>
 

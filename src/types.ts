@@ -52,6 +52,18 @@ export interface ProgramActivity {
   category: 'Spiritual' | 'Dawah' | 'Welfare' | 'Educational' | 'Conference' | 'Camp';
   coordinator: string;
   isUpcoming?: boolean;
+  flyerUrl?: string;
+}
+
+export interface LeadershipContact {
+  id: string;
+  name: string;
+  role: string;
+  category: 'Executive' | 'Staff Advisor' | 'Patron' | 'Matron';
+  phone?: string;
+  whatsapp?: string;
+  designation?: string;
+  organization?: string;
 }
 
 export interface Announcement {
@@ -81,4 +93,22 @@ export interface DonationAccount {
   accountName: string;
   purpose: string;
   note?: string;
+}
+
+export type OfficialRecipient = 'all' | 'ameer' | 'ameerah' | 'general_secretary';
+
+export interface InquiryMessage {
+  id: string;
+  senderName: string;
+  senderEmail: string;
+  senderPhone?: string;
+  senderStateCode?: string;
+  recipient: OfficialRecipient;
+  recipientName: string;
+  recipientRole: string;
+  category: string;
+  subject: string;
+  message: string;
+  createdAt: string;
+  status: 'pending' | 'responded' | 'archived';
 }

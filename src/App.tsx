@@ -6,10 +6,12 @@ import { VerificationSection } from './components/VerificationSection';
 import { ProgramsSection } from './components/ProgramsSection';
 import { ResourcesSection } from './components/ResourcesSection';
 import { DonationSection } from './components/DonationSection';
+import { LeadershipSection } from './components/LeadershipSection';
+import { ContactUs } from './components/ContactUs';
 import { AdminDashboard } from './components/AdminDashboard';
 import { Footer } from './components/Footer';
 import { IdCardCanvas } from './components/IdCardCanvas';
-import { Member, Announcement, ProgramActivity } from './types';
+import { Member, Announcement, ProgramActivity, OfficialRecipient } from './types';
 import { INITIAL_MEMBERS, INITIAL_ANNOUNCEMENTS, INITIAL_PROGRAMS } from './data/constants';
 import { X } from 'lucide-react';
 import { safeFetchJson } from './utils/api';
@@ -21,6 +23,7 @@ export default function App() {
   const [announcements, setAnnouncements] = useState<Announcement[]>(INITIAL_ANNOUNCEMENTS);
   const [programs, setPrograms] = useState<ProgramActivity[]>(INITIAL_PROGRAMS);
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const [contactRecipient, setContactRecipient] = useState<OfficialRecipient>('ameer');
 
   // Direct verification param from QR scan or URL
   const [initialVerifyCode, setInitialVerifyCode] = useState<string>('');
@@ -97,9 +100,16 @@ export default function App() {
         return;
       }
 
+      const officialParam = params.get('official');
+      if (officialParam && ['ameer', 'ameerah', 'general_secretary', 'all'].includes(officialParam)) {
+        setContactRecipient(officialParam as OfficialRecipient);
+      }
+
       const tabParam = params.get('tab');
-      if (tabParam && ['home', 'register', 'verify', 'programs', 'resources', 'donate'].includes(tabParam)) {
-        setActiveTab(tabParam);
+      if (tabParam && ['home', 'register', 'verify', 'programs', 'contacts', 'leadership', 'contact', 'contact-us', 'resources', 'donate'].includes(tabParam)) {
+        if (tabParam === 'leadership') setActiveTab('contacts');
+        else if (tabParam === 'contact-us') setActiveTab('contact');
+        else setActiveTab(tabParam);
         return;
       }
 
@@ -107,6 +117,8 @@ export default function App() {
       if (pathname === '/register') setActiveTab('register');
       else if (pathname === '/verify') setActiveTab('verify');
       else if (pathname === '/programs') setActiveTab('programs');
+      else if (pathname === '/contacts' || pathname === '/leadership') setActiveTab('contacts');
+      else if (pathname === '/contact' || pathname === '/contact-us') setActiveTab('contact');
       else if (pathname === '/resources') setActiveTab('resources');
       else if (pathname === '/donate') setActiveTab('donate');
       else setActiveTab('home');
@@ -117,18 +129,23 @@ export default function App() {
     return () => window.removeEventListener('popstate', parseRoute);
   }, []);
 
-  const handleNavigate = (tab: string) => {
-    setActiveTab(tab);
+  const handleNavigate = (tab: string, recipient?: OfficialRecipient) => {
+    const resolvedTab = tab === 'leadership' ? 'contacts' : tab === 'contact-us' ? 'contact' : tab;
+    if (recipient) {
+      setContactRecipient(recipient);
+    }
+    setActiveTab(resolvedTab);
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
     // Synchronize browser history and URL cleanly
     try {
-      if (tab === 'admin') {
+      if (resolvedTab === 'admin') {
         window.history.pushState({ tab: 'admin' }, '', '/admin');
-      } else if (tab === 'home') {
+      } else if (resolvedTab === 'home') {
         window.history.pushState({ tab: 'home' }, '', '/');
       } else {
-        window.history.pushState({ tab }, '', `/?tab=${tab}`);
+        const query = recipient ? `/?tab=${resolvedTab}&official=${recipient}` : `/?tab=${resolvedTab}`;
+        window.history.pushState({ tab: resolvedTab }, '', query);
       }
     } catch {}
   };
@@ -170,6 +187,17 @@ export default function App() {
 
         {activeTab === 'programs' && (
           <ProgramsSection programs={programs} />
+        )}
+
+        {activeTab === 'contacts' && (
+          <LeadershipSection onNavigate={handleNavigate} />
+        )}
+
+        {activeTab === 'contact' && (
+          <ContactUs
+            initialRecipient={contactRecipient}
+            onNavigate={handleNavigate}
+          />
         )}
 
         {activeTab === 'resources' && (

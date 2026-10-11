@@ -57,14 +57,6 @@ export const RegistrationSection: React.FC<RegistrationSectionProps> = ({ onMemb
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
 
-  // Sample quick passport presets for convenient testing
-  const samplePassports = [
-    { label: 'Brother 1', url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80' },
-    { label: 'Brother 2', url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80' },
-    { label: 'Sister 1', url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80' },
-    { label: 'Sister 2', url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&auto=format&fit=crop&q=80' }
-  ];
-
   // Handle local passport upload with automatic client-side compression
   const handlePassportUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -264,24 +256,6 @@ export const RegistrationSection: React.FC<RegistrationSectionProps> = ({ onMemb
     }
   };
 
-  // Quick 1-click Auto-Generate Demo Card
-  const handleAutoFillAndGenerate = () => {
-    const randomNum = Math.floor(1000 + Math.random() * 8999);
-    setFullName('Bro. Abdul-Hameed Olatunji');
-    setStateCode(`OS/26C/${randomNum}`);
-    setBatch('2026 Batch C Stream 1');
-    setPhoneNumber('08134567890');
-    setWhatsappNumber('08134567890');
-    setEmail('abdulhameed.osun@mcan.org.ng');
-    setMcanPost('Corps Member');
-    setLga('Osogbo');
-    setPpa('Government Technical College, Osogbo');
-    setBloodGroup('O+');
-    setPassportUrl(samplePassports[0].url);
-    setPhotoInfo('Demo Passport Loaded');
-    setErrorMessage(null);
-  };
-
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
       {/* Top Header Card */}
@@ -476,14 +450,6 @@ export const RegistrationSection: React.FC<RegistrationSectionProps> = ({ onMemb
                 Please enter your accurate NYSC details. All fields marked with an asterisk (<span className="text-red-500">*</span>) are required.
               </p>
             </div>
-            <button
-              type="button"
-              onClick={handleAutoFillAndGenerate}
-              className="self-start sm:self-center text-xs text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3.5 py-1.5 rounded-xl font-semibold inline-flex items-center gap-1.5 transition-colors shadow-2xs"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-              <span>Fill Sample Data</span>
-            </button>
           </div>
 
           {errorMessage && (
@@ -570,33 +536,6 @@ export const RegistrationSection: React.FC<RegistrationSectionProps> = ({ onMemb
                       Photos are automatically compressed to ensure instant generation and fast download.
                     </span>
                   )}
-
-                  {/* Sample portraits shortcut */}
-                  <div className="pt-2">
-                    <span className="text-xs text-gray-600 font-medium block mb-1.5">
-                      Or select sample portrait for instant testing:
-                    </span>
-                    <div className="flex flex-wrap gap-2">
-                      {samplePassports.map((sample, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => {
-                            setPassportUrl(sample.url);
-                            setPhotoInfo(`${sample.label} photo selected`);
-                            setErrorMessage(null);
-                          }}
-                          className={`text-xs px-2.5 py-1 rounded-lg border transition-all ${
-                            passportUrl === sample.url
-                              ? 'bg-emerald-800 text-white border-emerald-800'
-                              : 'bg-white text-gray-700 border-gray-200 hover:bg-emerald-50'
-                          }`}
-                        >
-                          {sample.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>

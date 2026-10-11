@@ -173,12 +173,24 @@ export const ResourcesSection: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0 w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row items-center gap-2.5 shrink-0 w-full md:w-auto">
           <a
-            href="tel:+2348034567890"
-            className="w-full sm:w-auto text-center px-5 py-3 rounded-xl bg-amber-400 text-emerald-950 font-bold text-xs sm:text-sm hover:bg-amber-300 transition-colors shadow-xs"
+            href="tel:09056498489"
+            className="w-full sm:w-auto text-center px-4 py-2.5 rounded-xl bg-amber-400 text-emerald-950 font-bold text-xs sm:text-sm hover:bg-amber-300 transition-colors shadow-xs"
           >
-            Call Camp Amir (+234 803 456 7890)
+            Call Ameer (09056498489)
+          </a>
+          <a
+            href="tel:07039101391"
+            className="w-full sm:w-auto text-center px-4 py-2.5 rounded-xl bg-emerald-700 text-white font-bold text-xs sm:text-sm hover:bg-emerald-600 transition-colors"
+          >
+            Call Gen. Sec (07039101391)
+          </a>
+          <a
+            href="tel:09039454686"
+            className="w-full sm:w-auto text-center px-4 py-2.5 rounded-xl bg-emerald-800 text-amber-200 border border-emerald-600 font-bold text-xs sm:text-sm hover:bg-emerald-700 transition-colors"
+          >
+            Ameerah (09039454686)
           </a>
         </div>
       </div>

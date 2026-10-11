@@ -1,0 +1,47 @@
+[
+  {
+    "id": "MCAN-INQ-056402",
+    "senderName": "Brother Bashir",
+    "senderEmail": "bashir@example.com",
+    "senderPhone": "08055554433",
+    "senderStateCode": "OS/26A/9999",
+    "recipient": "ameer",
+    "recipientName": "Brother Luqman Waliyullah Olamide",
+    "recipientRole": "Ameer (State President)",
+    "category": "Accommodation & Lodge",
+    "subject": "Lodge in Osogbo",
+    "message": "Assalamu alaykum, testing the inquiries endpoint.",
+    "createdAt": "2026-10-11T18:40:56.402Z",
+    "status": "pending"
+  },
+  {
+    "id": "MCAN-INQ-001001",
+    "senderName": "Brother Ibrahim Yusuf",
+    "senderEmail": "ibrahim.yusuf@example.com",
+    "senderPhone": "08012345678",
+    "senderStateCode": "OS/26A/1042",
+    "recipient": "ameer",
+    "recipientName": "Brother Luqman Waliyullah Olamide",
+    "recipientRole": "Ameer (State President)",
+    "category": "Accommodation & Lodge",
+    "subject": "Request for MCAN Corpers Lodge Accommodation in Ede South",
+    "message": "Assalamu alaykum Ameer, I was recently posted to a secondary school in Ede South LGA and I would like to inquire about bed space availability at the MCAN Corpers Lodge in Ede. Jazakumullahu Khayran.",
+    "createdAt": "2026-09-15T14:30:00.000Z",
+    "status": "responded"
+  },
+  {
+    "id": "MCAN-INQ-001002",
+    "senderName": "Sister Zainab Adeola",
+    "senderEmail": "zainab.adeola@example.com",
+    "senderPhone": "08123456789",
+    "senderStateCode": "OS/26B/0521",
+    "recipient": "ameerah",
+    "recipientName": "Sister Kofoworola Bilqees",
+    "recipientRole": "Ameerah (State Vice President)",
+    "category": "Sisters Affairs",
+    "subject": "Enquiry on Sisters Circle & Sponsorship for Ode Oga Masjid Program",
+    "message": "Assalamu alaykum warahmatullah Ameerah, I want to confirm if female corpers traveling from Iwo LGA can participate in this coming month's Sisters Circle at Ode Oga Masjid, and if there are travel logistics available. Ma'assalam.",
+    "createdAt": "2026-09-18T10:15:00.000Z",
+    "status": "pending"
+  }
+]

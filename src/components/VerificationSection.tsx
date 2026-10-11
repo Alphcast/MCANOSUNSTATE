@@ -116,8 +116,12 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({ initia
 
         {/* Quick Test Codes */}
         <div className="mt-4 pt-4 border-t border-gray-100 flex flex-wrap items-center gap-2 text-xs">
-          <span className="text-gray-500 font-medium">Quick verification examples:</span>
-          {['OS/26A/1042', 'OS/26A/2115', 'OS/26B/0891', 'OS/26C/3402'].map((code) => (
+          <span className="text-gray-500 font-medium">Verify Executive Leadership:</span>
+          {[
+            { label: 'Ameer (OS/26A/0001)', code: 'OS/26A/0001' },
+            { label: 'Ameerah (OS/26A/0002)', code: 'OS/26A/0002' },
+            { label: 'Gen. Sec (OS/26A/0003)', code: 'OS/26A/0003' }
+          ].map(({ label, code }) => (
             <button
               key={code}
               type="button"
@@ -127,7 +131,7 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({ initia
               }}
               className="px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-900 font-mono hover:bg-emerald-100 font-semibold border border-emerald-200"
             >
-              {code}
+              {label}
             </button>
           ))}
         </div>
