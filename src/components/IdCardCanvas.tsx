@@ -634,13 +634,20 @@ export const IdCardCanvas: React.FC<IdCardCanvasProps> = ({ member }) => {
     const frontImg = frontCanvasRef.current.toDataURL('image/png');
     const backImg = backCanvasRef.current.toDataURL('image/png');
 
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      alert('Please allow popups to print your official MCAN ID card.');
-      return;
-    }
+    const printFrame = document.createElement('iframe');
+    printFrame.style.position = 'fixed';
+    printFrame.style.right = '0';
+    printFrame.style.bottom = '0';
+    printFrame.style.width = '0';
+    printFrame.style.height = '0';
+    printFrame.style.border = '0';
+    document.body.appendChild(printFrame);
 
-    printWindow.document.write(`
+    const frameDoc = printFrame.contentWindow?.document;
+    if (!frameDoc) return;
+
+    frameDoc.open();
+    frameDoc.write(`
       <!DOCTYPE html>
       <html>
         <head>
@@ -727,12 +734,6 @@ export const IdCardCanvas: React.FC<IdCardCanvasProps> = ({ member }) => {
             <h1>Muslim Corpers Association of Nigeria (MCAN)</h1>
             <p>Osun State Chapter • Official Digital Identification Card</p>
           </div>
-          <div class="no-print" style="margin-bottom: 20px;">
-            <button onclick="window.print()" style="padding: 10px 24px; background: #065f46; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">
-              🖨️ Print / Save as PDF
-            </button>
-            <span style="margin-left: 15px; font-size: 13px; color: #64748b;">(Choose "Save as PDF" in destination printer menu)</span>
-          </div>
           <div class="cards-container">
             <div>
               <div class="label">Front Side (CR80 Standard Size)</div>
@@ -750,15 +751,20 @@ export const IdCardCanvas: React.FC<IdCardCanvasProps> = ({ member }) => {
           <div class="instructions">
             <strong>Printing Instructions:</strong> Print on heavy card stock (300gsm) or PVC ID card paper at 100% scale (Do not fit to page). Cut along the border and laminate for official field verification.
           </div>
-          <script>
-            window.onload = function() {
-              setTimeout(function() { window.print(); }, 500);
-            };
-          </script>
         </body>
       </html>
     `);
-    printWindow.document.close();
+    frameDoc.close();
+
+    setTimeout(() => {
+      printFrame.contentWindow?.focus();
+      printFrame.contentWindow?.print();
+      setTimeout(() => {
+        try {
+          document.body.removeChild(printFrame);
+        } catch {}
+      }, 2000);
+    }, 400);
   };
 
   return (

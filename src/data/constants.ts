@@ -410,23 +410,23 @@ export const QURAN_VERSES = [
     arabic: 'مَّثَلُ الَّذِينَ يُنفِقُونَ أَمْوَالَهُمْ فِي سَبِيلِ اللَّهِ كَمَثَلِ حَبَّةٍ أَنبَتَتْ سَبْعَ سَنَابِلَ فِي كُلِّ سُنبُلَةٍ مِّائَةُ حَبَّةٍ ۗ وَاللَّهُ يُضَاعِفُ لِمَن يَشَاءُ ۗ وَاللَّهُ وَاسِعٌ عَلِيمٌ',
     transliteration: 'Masalullazeena yunfiqoona amwaalahum fee sabeelil laahi kamasali habbatin ambatat sab\'a sanaabila fee kulli sumbulatim mi\'atu habbah; wallaahu yudaa\'ifu limany yashaaa\'; wallaahu Waasi\'un \'Aleem.',
     translation: 'The example of those who spend their wealth in the way of Allah is like a seed of grain which grows seven spikes; in each spike is a hundred grains. And Allah multiplies [His reward] for whom He wills. And Allah is all-Encompassing and Knowing.',
-    focus: 'Multiplication of Reward for Charity'
+    focus: 'Multiplication of Reward for Spending in Allah\'s Cause'
   },
   {
-    surah: 'Surah Al-Baqarah',
-    reference: '2:274',
-    arabic: 'الَّذِينَ يُنفِقُونَ أَمْوَالَهُم بِاللَّيْلِ وَالنَّهَارِ سِرًّا وَعَلَانِيَةً فَلَهُمْ أَجْرُهُمْ عِندَ رَبِّهِمْ وَلَا خَوْفٌ عَلَيْهِمْ وَلَا هُمْ يَحْزَنُونَ',
-    transliteration: 'Allazeena yunfiqoona amwaalahum billaili wannahaari sirranw wa \'alaaniyatan falahum ajruhum \'inda Rabbihim wa laa khawfun \'alaihim wa laa hum yahzanoon.',
-    translation: 'Those who spend their wealth [in Allah\'s way] by night and by day, secretly and publicly, will have their reward with their Lord, and no fear shall come upon them, nor shall they grieve.',
-    focus: 'Peace & Freedom from Fear'
+    surah: 'Surah Saba',
+    reference: '34:39',
+    arabic: 'قُلْ إِنَّ رَبِّي يَبْسُطُ الرِّزْقَ لِمَن يَشَاءُ مِنْ عِبَادِهِ وَيَقْدِرُ لَهُ ۚ وَمَا أَنفَقْتُم مِّن شَيْءٍ فَهُوَ يُخْلِفُهُ ۖ وَهُوَ خَيْرُ الرَّازِقِينَ',
+    transliteration: 'Qul inna Rabbee yabsutur rizqa limany yashaaa\'u min \'ibaadihi wa yaqdiru lah; wa maaa anfaqtum min shai\'in fahuwa yukhlifuh; wa Huwa khayrur raaziqeen.',
+    translation: 'Say, "Indeed, my Lord extends provision for whom He wills of His servants and restricts [it] for him. But whatever you spend [in His cause] — He will replace it; and He is the best of providers."',
+    focus: 'Allah Guarantees Replenishing What You Spend'
   },
   {
-    surah: 'Surah At-Tawbah',
-    reference: '9:60',
-    arabic: 'إِنَّمَا الصَّدَقَاتُ لِلْفُقَرَاءِ وَالْمَسَاكِينِ وَالْعَامِلِينَ عَلَيْهَا وَالْمُؤَلَّفَةِ قُلُوبُهُمْ وَفِي الرِّقَابِ وَالْغَارِمِينَ وَفِي سَبِيلِ اللَّهِ وَابْنِ السَّبِيلِ ۖ فَرِيضَةً مِّنَ اللَّهِ ۗ وَاللَّهُ عَلِيمٌ حَكِيمٌ',
-    transliteration: 'Innamas Sadaqaatu lilfuqaraaa\'i walmasaakeeni wal \'aamileena \'alaihaa walmu\'allafati quloobuhum wa fir riqaabi walghaarimeena wa fee sabeelil laahi wabnis sabeel; fareedatam minal laah; wallaahu \'Aleemun Hakeem.',
-    translation: 'Zakah expenditures are only for the poor and for the needy and for those employed to collect [zakah] and for bringing hearts together [for Islam] and for freeing captives and for those in debt and for the cause of Allah and for the [stranded] traveler — an obligation [imposed] by Allah. And Allah is Knowing and Wise.',
-    focus: 'Sacred Categories & Obligation of Zakat'
+    surah: 'Surah Al-Munafiqun',
+    reference: '63:10',
+    arabic: 'وَأَنفِقُوا مِن مَّا رَزَقْنَاكُم مِّن قَبْلِ أَن يَأْتِيَ أَحَدَكُمُ الْمَوْتُ فَيَقُولَ رَبِّ لَوْلَا أَخَّرْتَنِي إِلَىٰ أَجَلٍ قَرِيبٍ فَأَصَّدَّقَ وَأَكُن مِّنَ الصَّالِحِينَ',
+    transliteration: 'Wa anfiqoo mim maa razaqnaakum min qabli any ya\'tiya ahadakumul mawtu fayaqoola Rabbi law laaa akhkhartaneee ilaaa ajalin qareebin fa assaddaqa wa akum minas saaliheen.',
+    translation: 'And spend [in the way of Allah] from what We have provided you before death comes to one of you and he says, "My Lord, if only You would delay me for a brief term so I would give charity and be among the righteous."',
+    focus: 'Spending for Allah Before Death'
   },
   {
     surah: 'Surah Al-Hadid',
@@ -434,31 +434,40 @@ export const QURAN_VERSES = [
     arabic: 'إِنَّ الْمُصَّدِّقِينَ وَالْمُصَّدِّقَاتِ وَأَقْرَضُوا اللَّهَ قَرْضًا حَسَنًا يُضَاعَفُ لَهُمْ وَلَهُمْ أَجْرٌ كَرِيمٌ',
     transliteration: 'Innal mussaddiqqeena wal mussaddiqaati wa aqradul laaha qardan hasanay yudaa\'afu lahum wa lahum ajrun kareem.',
     translation: 'Indeed, the men who practice charity and the women who practice charity and [they who] have loaned Allah a goodly loan — it will be multiplied for them, and they will have a noble reward.',
-    focus: 'A Goodly Loan to the Almighty'
+    focus: 'A Goodly Loan with Multiplied Noble Reward'
+  }
+];
+
+export const PROPHETIC_HADITHS = [
+  {
+    hadith: 'When a human being dies, their deeds come to an end except for three: a continuous charity (Sadaqah Jariyah), knowledge from which people benefit, or a righteous child who prays for them.',
+    source: 'Sahih Muslim (1631)',
+    theme: 'Continuous Charity (Sadaqah Jariyah)'
+  },
+  {
+    hadith: 'Charity does not decrease wealth in the least. No one forgives another except that Allah increases his honor, and no one humbles himself for the sake of Allah except that Allah raises his status.',
+    source: 'Sahih Muslim (2588)',
+    theme: 'Charity Never Decreases Wealth'
+  },
+  {
+    hadith: 'Whoever builds a mosque for Allah, even like the nest of a sandgrouse or smaller, Allah will build for him a house in Paradise.',
+    source: 'Sunan Ibn Majah (738)',
+    theme: 'House in Jannah for Mosque Support'
+  },
+  {
+    hadith: 'The shade of the believer on the Day of Resurrection will be his charity.',
+    source: 'Jami\' at-Tirmidhi (604)',
+    theme: 'Shade on the Day of Judgement'
   }
 ];
 
 export const BANK_ACCOUNTS: DonationAccount[] = [
   {
-    bankName: 'Jaiz Bank Plc',
-    accountNumber: '0004928192',
-    accountName: 'Muslim Corpers Association of Nigeria (MCAN) Osun State',
-    purpose: 'Official Zakat & Sadaqah Fund',
-    note: 'Strictly disbursed across legitimate Zakat heads under scholarly supervision.'
-  },
-  {
-    bankName: 'Stanbic IBTC Bank',
-    accountNumber: '0038472910',
-    accountName: 'MCAN Osun Chapter Development Fund',
-    purpose: 'Mosque & Corpers Lodge Expansion Project',
-    note: 'Dedicated to capital development, borehole maintenance & lodge solar power.'
-  },
-  {
-    bankName: 'TAJBank Ltd',
-    accountNumber: '0019283746',
-    accountName: 'MCAN Osun State Dawah Committee',
-    purpose: 'NYSC Ede Orientation Camp Da\'wah & Welfare',
-    note: 'Sponsoring Ramadan meals, camp hijabs, Quran distributions & rural outreach.'
+    bankName: 'Lotus Bank',
+    accountNumber: '1014485564',
+    accountName: 'MUSLIM CORPERS ASSOCIATION OF NIGERIA OSUN CHAPTER',
+    purpose: 'Official MCAN Osun State Chapter Donation Account',
+    note: 'Official chapter account dedicated to Da\'wah, NYSC Ede Camp outreach, Mosque & Corpers Lodge development, and welfare in the cause of Allah.'
   }
 ];
 

@@ -19,7 +19,8 @@ import {
   Eye,
   Download,
   X,
-  Mail
+  Mail,
+  Check
 } from 'lucide-react';
 import { Announcement, ProgramActivity } from '../types';
 
@@ -37,6 +38,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
   totalMembers
 }) => {
   const [activeFlyer, setActiveFlyer] = useState<{ url: string; title: string; subtitle?: string } | null>(null);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   const fiqhProgram = programs.find((p) => p.title.toLowerCase().includes('fiqh') || p.id === 'prog-w-02') || programs.find((p) => p.frequency === 'weekly');
   const tadhkirahProgram = programs.find((p) => p.title.toLowerCase().includes('tadhkirah') || p.id === 'prog-m-02');
@@ -102,7 +104,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
                 className="px-5 py-3.5 rounded-xl bg-white/10 text-amber-200 border border-white/20 font-semibold text-sm hover:bg-white/20 transition-all"
               >
                 <HeartHandshake className="w-4 h-4 inline mr-1.5" />
-                <span>Zakat & Donation</span>
+                <span>Donations</span>
               </button>
             </div>
           </div>
@@ -874,17 +876,17 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
           </div>
         </section>
 
-        {/* Zakat & Charity Callout Card */}
+        {/* Cause of Allah & Donation Callout Card */}
         <section className="bg-gradient-to-r from-emerald-900 to-emerald-950 rounded-2xl text-white p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-md border border-emerald-700/40">
           <div className="space-y-2 max-w-xl">
             <span className="text-xs font-bold uppercase tracking-wider text-amber-300">
-              Noble Quran [2:261]
+              Noble Quran [2:261] • Infāq fī Sabīlillāh
             </span>
             <h3 className="text-xl sm:text-2xl font-black">
               "The example of those who spend in the way of Allah is like a seed growing seven spikes..."
             </h3>
             <p className="text-xs sm:text-sm text-emerald-100">
-              Support our official Zakat & Sadaqah account, Mosque development, and NYSC Ede Camp Da'wah feeding.
+              Contribute to the cause of Allah through our verified Lotus Bank account. Support NYSC Ede Camp Da'wah, the Osogbo Corpers Lodge & Mosque, and corpers welfare.
             </p>
           </div>
 
@@ -892,7 +894,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
             onClick={() => onNavigate('donate')}
             className="w-full md:w-auto px-6 py-3.5 rounded-xl bg-amber-400 text-emerald-950 font-extrabold text-sm hover:bg-amber-300 transition-all shadow-sm shrink-0"
           >
-            View Zakat Accounts & Donate
+            View Account & Donate
           </button>
         </section>
       </div>
@@ -962,12 +964,14 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
                       });
                     } else {
                       navigator.clipboard.writeText(window.location.origin);
-                      alert('Portal link copied to clipboard!');
+                      setCopiedLink(true);
+                      setTimeout(() => setCopiedLink(false), 2500);
                     }
                   }}
                   className="px-4 py-2 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-semibold text-xs sm:text-sm inline-flex items-center gap-1.5 transition-colors"
                 >
-                  <span>Share</span>
+                  {copiedLink ? <Check className="w-4 h-4 text-emerald-300" /> : null}
+                  <span>{copiedLink ? 'Link Copied!' : 'Share'}</span>
                 </button>
               </div>
             </div>

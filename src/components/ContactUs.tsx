@@ -630,7 +630,7 @@ Sent via MCAN Osun State Chapter Web Portal`;
                       <option value="Programs & Convention">Annual Convention (31st Oct – 1st Nov) & Events</option>
                       <option value="WhatsApp Halaqah">Weekly WhatsApp Fiqh & Hadith Sessions</option>
                       <option value="ID Card & Verification">ID Card Registration & Verification Support</option>
-                      <option value="Sponsorship & Donations">Sponsorship, Zakat & Chapter Support</option>
+                      <option value="Sponsorship & Donations">Sponsorship, Donations & Chapter Support</option>
                     </select>
                   </div>
                 </div>

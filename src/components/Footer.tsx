@@ -91,7 +91,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                   onClick={() => onNavigate('donate')}
                   className="hover:text-amber-300 transition-colors text-left"
                 >
-                  Zakat & Sadaqah Accounts
+                  Official Donation Account (Lotus Bank)
                 </button>
               </li>
             </ul>

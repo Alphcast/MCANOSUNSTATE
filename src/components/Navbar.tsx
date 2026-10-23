@@ -36,7 +36,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'contacts', label: 'Leadership', icon: Users },
     { id: 'contact', label: 'Contact Us', icon: Mail },
     { id: 'resources', label: 'Resources', icon: BookOpen },
-    { id: 'donate', label: 'Zakat & Donation', icon: HeartHandshake }
+    { id: 'donate', label: 'Donations', icon: HeartHandshake }
   ];
 
   return (

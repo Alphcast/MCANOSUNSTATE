@@ -425,13 +425,14 @@ END:VCALENDAR`;
                       });
                     } else {
                       navigator.clipboard.writeText(text);
-                      alert('Program details copied to clipboard!');
+                      setCopiedId(activeFlyerProgram.id);
+                      setTimeout(() => setCopiedId(null), 2500);
                     }
                   }}
                   className="px-4 py-2 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-semibold text-xs sm:text-sm inline-flex items-center gap-1.5 transition-colors"
                 >
                   <Share2 className="w-4 h-4" />
-                  <span>Share</span>
+                  <span>{copiedId === activeFlyerProgram.id ? 'Copied!' : 'Share'}</span>
                 </button>
               </div>
             </div>

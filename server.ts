@@ -93,8 +93,8 @@ function loadDonations(): DonationRecord[] {
       phone: '08031122334',
       amount: 25000,
       purpose: 'Mosque & Corpers Lodge Expansion Project',
-      bankUsed: 'Stanbic IBTC Bank',
-      transactionRef: 'STAN-TXN-984210',
+      bankUsed: 'Lotus Bank',
+      transactionRef: 'LOTUS-TXN-984210',
       date: new Date(Date.now() - 86400000 * 2).toISOString(),
       status: 'Confirmed'
     },
@@ -103,9 +103,9 @@ function loadDonations(): DonationRecord[] {
       donorName: 'Anonymous Sister',
       phone: '08120000000',
       amount: 10000,
-      purpose: 'Official Zakat & Sadaqah Fund',
-      bankUsed: 'Jaiz Bank Plc',
-      transactionRef: 'JAIZ-SAD-44129',
+      purpose: 'Official Chapter Da\'wah & Welfare Fund',
+      bankUsed: 'Lotus Bank',
+      transactionRef: 'LOTUS-DAW-44129',
       date: new Date(Date.now() - 86400000 * 4).toISOString(),
       status: 'Confirmed'
     }
@@ -479,7 +479,7 @@ app.post('/api/donations/notify', (req, res) => {
     donorName: donorName.trim(),
     phone: phone ? phone.trim() : '',
     amount: Number(amount) || 0,
-    purpose: purpose || 'Official Zakat & Sadaqah Fund',
+    purpose: purpose || 'Official Chapter Da\'wah & Welfare Fund',
     bankUsed,
     transactionRef: transactionRef ? transactionRef.trim() : `REF-${Date.now().toString().slice(-6)}`,
     date: new Date().toISOString(),
